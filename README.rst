@@ -10,6 +10,8 @@ SAE J1939 is used in the commercial vehicle area for communication throughout
 the vehicle, with the physical layer defined in ISO 11898. A different 
 physical layer is used between the tractor and trailer, specified in ISO 11992. 
 
+This package depends on the `python-can <https://github.com/hardbyte/python-can/>`__ project.
+
 The **C**\ ontroller **A**\ rea **N**\ etwork is a bus standard designed
 to allow microcontrollers and devices to communicate with each other. It
 has priority based bus arbitration, reliable deterministic
@@ -22,8 +24,6 @@ messages on a can bus.
 
 
 The library (should) support Python 2.7, Python 3.3+ and runs on Mac, Linux and Windows; however, at this early tiem I am testing on Python 3.4.0 on Linux 3.16.0-38-generic #52~14.04.1-Ubuntu SMP Fri May 8 09:43:57 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
-
-This package depends upon the `python-can <https://github.com/hardbyte/python-can/>`__ project.
 
 
 Discussion
