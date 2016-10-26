@@ -65,3 +65,5 @@ target/
 
 # Local stuff
 *.swp
+*.swo
+*/*.swo

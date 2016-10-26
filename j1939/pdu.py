@@ -7,6 +7,8 @@ from .nodename import NodeName
 
 logger = logging.getLogger(__name__)
 
+RADIX_DECIMAL=10
+RADIX_HEX=16
 
 class PDU(object):
 
@@ -32,6 +34,7 @@ class PDU(object):
         self.arbitration_id = arbitration_id
         self.data = self._check_data(data)
         self.info_strings = info_strings
+        self.radix=RADIX_DECIMAL
 
     def __eq__(self, other):
         """Returns True if the pgn, data, source and destination are the same"""
@@ -124,12 +127,31 @@ class PDU(object):
         logger.debug("Messages match")
         return retval
 
+    @property
+    def display_radix(self):
+        return self.radix
+
+    @display_radix.setter
+    def display_radix(self, radix):
+        if radix is None:
+            self.radix=RADIX_DECIMAL
+        if isinstance(radix, str):
+            if radix.lower()=='decimal':
+                self.radix=RADIX_DECIMAL
+            if radix.lower()=='hex':
+                self.radix=RADIX_HEX
+            else:
+                raise ValueError("Only 'hex' or 'decimal' are legitimate choices: %s" % radix)
+
+
     def __str__(self):
         """
 
         :return: A string representation of this message.
 
         """
-        # TODO group this into 8 bytes per line and line them up...
-        data_string = " ".join("{:02d}".format(byte) for byte in self.data)
+        if self.radix == RADIX_HEX:
+            data_string = " ".join("{:02x}".format(byte) for byte in self.data)
+        else:
+            data_string = " ".join("{:3d}".format(byte) for byte in self.data)
         return "{s.timestamp:15.6f}    {s.arbitration_id}    {data}".format(s=self, data=data_string)

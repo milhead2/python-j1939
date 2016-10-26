@@ -32,6 +32,12 @@ def parse_arguments():
     How much information do you want to see at the command line?
     You can add several of these e.g., -vv is DEBUG'''), default=2)
 
+    parser.add_argument('-x', '--hex-out', 
+                        action='store_true',
+                        help=textwrap.dedent('''\
+    hex data in output
+    when dumping output display data in hex'''), default=False)
+
     filter_group = parser.add_mutually_exclusive_group()
     filter_group.add_argument('--pgn',
                               help=textwrap.dedent('''\
@@ -115,7 +121,12 @@ if __name__ == "__main__":
             filters.append({"source": int(src)})
     if args.filter is not None:
         filters = json.load(args.filter)
-        #print("Loaded filters from file: ", filters)
+        print("Loaded filters from file: ", filters)
+
+
+    print("filter PGN's : ", args.pgn)
+    print("filter source: ", args.source)
+    print("filters      : ", filters)
 
     bus = j1939.Bus(channel=args.channel, bustype=args.interface, j1939_filters=filters)
     log_start_time = datetime.datetime.now()
@@ -123,6 +134,8 @@ if __name__ == "__main__":
 
     try:
         for msg in bus:
+            if args.hex_out:
+                msg.display_radix = 'hex'
             print(msg)
     except KeyboardInterrupt:
         bus.shutdown()
