@@ -44,7 +44,5 @@ If you run into bugs, you can file them in
 `issue tracker <https://github.com/milhead2/python-j1939/issues>`__.
 (Any help is appriciated!)
 
-If you want to contact me please email me at `Miller Lowe <mailto://milhead@gmail.com`__.
-
 Wherever we interact, we strive to follow the
 `Python Community Code of Conduct <https://www.python.org/psf/codeofconduct/>`__.
