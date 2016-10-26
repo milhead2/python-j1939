@@ -22,6 +22,17 @@ Python developers; providing `common abstractions to
 different hardware devices`, and a suite of utilities for sending and receiving
 messages on a can bus.
 
+In all of my code that used the former protocol import from python-can I 
+needed only to amke a small change.  Generally a shortning of the import 
+statements..  For example
+
+    from can.protocols import j1939
+
+becomes
+
+    import j1939
+
+
 
 The library (should) support Python 2.7, Python 3.3+ and runs on Mac, Linux and Windows; however, at this early tiem I am testing on Python 3.4.0 on Linux 3.16.0-38-generic #52~14.04.1-Ubuntu SMP Fri May 8 09:43:57 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
 
@@ -32,6 +43,8 @@ Discussion
 If you run into bugs, you can file them in 
 `issue tracker <https://github.com/milhead2/python-j1939/issues>`__.
 (Any help is appriciated!)
+
+If you want to contact me please email me at `Miller Lowe <mailto://milhead@gmail.com`__.
 
 Wherever we interact, we strive to follow the
 `Python Community Code of Conduct <https://www.python.org/psf/codeofconduct/>`__.
