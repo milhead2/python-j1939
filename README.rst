@@ -23,7 +23,7 @@ messages on a can bus.
 
 The library (should) support Python 2.7, Python 3.3+ and runs on Mac, Linux and Windows; however, at this early tiem I am testing on Python 3.4.0 on Linux 3.16.0-38-generic #52~14.04.1-Ubuntu SMP Fri May 8 09:43:57 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
 
-This package depends upon the `python-can <https://https://github.com/hardbyte/python-can/>`__ project.
+This package depends upon the `python-can <https://github.com/hardbyte/python-can/>`__ project.
 
 
 Discussion
