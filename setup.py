@@ -24,6 +24,8 @@ setup(
         "doc": ["*.*"]
     },
 
+    install_requires=["python-can>=1.5"],
+
     scripts=["./bin/j1939_logger.py"],
 
     # Tests can be run using `python setup.py test`
