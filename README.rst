@@ -10,7 +10,7 @@ SAE J1939 is used in the commercial vehicle area for communication throughout
 the vehicle, with the physical layer defined in ISO 11898. A different 
 physical layer is used between the tractor and trailer, specified in ISO 11992. 
 
-This package depends on the `python-can <https://github.com/hardbyte/python-can/>`__ project.
+This package is dependent on, was a part of, and broken out from,  the `python-can <https://github.com/hardbyte/python-can/>`__ project that Brian Thorne has maintained for years..
 
 The **C**\ ontroller **A**\ rea **N**\ etwork is a bus standard designed
 to allow microcontrollers and devices to communicate with each other. It
@@ -23,7 +23,7 @@ different hardware devices`, and a suite of utilities for sending and receiving
 messages on a can bus.
 
 In all of my code that used the former protocol import from python-can I 
-needed only to amke a small change.  Generally a shortning of the import 
+needed only to make a small change.  Generally a shortning of the import 
 statements..  For example
 
     from can.protocols import j1939
@@ -34,7 +34,7 @@ becomes
 
 
 
-The library (should) support Python 2.7, Python 3.3+ and runs on Mac, Linux and Windows; however, at this early tiem I am testing on Python 3.4.0 on Linux 3.16.0-38-generic #52~14.04.1-Ubuntu SMP Fri May 8 09:43:57 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+The library (should) support Python 2.7, Python 3.3+ and run on Mac, Linux and Windows; however, at this early time I am only testing on Python 3.4.0 on Linux 3.16.0-38-generic #52~14.04.1-Ubuntu SMP Fri May 8 09:43:57 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
 
 
 Discussion
