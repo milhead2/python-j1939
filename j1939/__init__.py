@@ -103,10 +103,14 @@ class Bus(BusABC):
 
         logger.debug("Creating a new can bus")
         self.can_bus = RawCanBus(*args, **kwargs)
-        self.can_notifier = Notifier(self.can_bus, [self.rx_can_message_queue.put])
-        self.j1939_notifier = Notifier(self, [])
+        self.can_notifier = Notifier(self.can_bus, [self.notification])
+        #self.j1939_notifier = Notifier(self, [])
 
         self._long_message_throttler.start()
+
+    def notification(self, msg):
+        self.rx_can_message_queue.put(msg)
+
 
     def recv(self, timeout=None):
         logger.debug("Waiting for new message")
@@ -261,6 +265,7 @@ class Bus(BusABC):
             retval = self._data_transfer_handler(pdu)
         else:
             retval = pdu
+
         logging.debug(retval)
         return retval
 
