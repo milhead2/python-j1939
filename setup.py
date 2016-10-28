@@ -5,7 +5,7 @@ python-j1939 requires the setuptools package to be installed.
 import logging
 from setuptools import setup, find_packages
 
-__version__ = "0.0.0-alpha.0"
+__version__ = "0.1.0-alpha.0"
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -14,9 +14,9 @@ setup(
     url="https://github.com/milhead2/python-j1939.git",
     version=__version__,
     packages=find_packages(),
-    author="Brian Thorne",
-    author_email="hardbyte@gmail.com",
-    description="Controller Area Network interface module for Python",
+    author="David 'Miller' Lowe",
+    author_email="milhead@gmail.com",
+    description="SAE J1939 module for Python",
     long_description=open('README.rst').read(),
     license="LGPL v3",
     package_data={

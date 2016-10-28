@@ -65,6 +65,7 @@ class Bus(BusABC):
 
         super(Bus, self).__init__()
         self._pdu_type = pdu_type
+        self.timeout=1
         self._long_message_throttler = threading.Thread(target=self._throttler_function)
         #self._long_message_throttler.daemon = True
 
@@ -101,9 +102,15 @@ class Bus(BusABC):
                 can_filters.append({"can_id": can_id, "can_mask": can_mask})
             kwargs['can_filters'] = can_filters
 
+        if 'timeout' in kwargs and kwargs['timeout'] is not None:
+            if isinstance(kwargs['timeout'], (int, float)):
+                self.timeout=kwargs['timeout']
+            else:
+                raise ValueError("Bad timeout type")
+
         logger.debug("Creating a new can bus")
         self.can_bus = RawCanBus(*args, **kwargs)
-        self.can_notifier = Notifier(self.can_bus, [self.notification])
+        self.can_notifier = Notifier(self.can_bus, [self.notification], timeout=self.timeout)
         #self.j1939_notifier = Notifier(self, [])
 
         self._long_message_throttler.start()
@@ -245,7 +252,7 @@ class Bus(BusABC):
     def shutdown(self):
         self.can_notifier.running.clear()
         self.can_bus.shutdown()
-        self.j1939_notifier.running.clear()
+        #self.j1939_notifier.running.clear()
         super(Bus, self).shutdown()
 
     def _process_incoming_message(self, msg):
@@ -260,12 +267,16 @@ class Bus(BusABC):
         pdu.info_strings = []
 
         if arbitration_id.pgn.value == constants.PGN_TP_CONNECTION_MANAGEMENT:
+            logger.debug("PGN_TP_CONNECTION_MANAGEMENT")
             retval = self._connection_management_handler(pdu)
         elif arbitration_id.pgn.value == constants.PGN_TP_DATA_TRANSFER:
+            logger.debug("PGN_TP_DATA_TRANSFER")
             retval = self._data_transfer_handler(pdu)
         else:
+            logger.debug("PGN_PDU")
             retval = pdu
 
+        logger.debug("\n")
         logging.debug(retval)
         return retval
 
@@ -305,7 +316,8 @@ class Bus(BusABC):
 
                     # Find a Node object so we can search its list of known node addresses for this node
                     # so we can find if we are responsible for sending the EOM ACK message
-                    send_ack = any(True for l in self.j1939_notifier.listeners
+					# TODO: Was self.j1939_notifier.listeners
+                    send_ack = any(True for l in self.can_notifier.listeners
                                    if isinstance(l, Node) and (l.address == pdu_specific or
                                                                pdu_specific in l.address_list))
                     if send_ack:
@@ -337,6 +349,7 @@ class Bus(BusABC):
                     return self._process_eom_ack(msg)
 
     def _process_rts(self, msg):
+        logger.debug("process_rts")
         if msg.arbitration_id.source_address not in self._incomplete_received_pdus:
             self._incomplete_received_pdus[msg.arbitration_id.source_address] = {}
             self._incomplete_received_pdu_lengths[msg.arbitration_id.source_address] = {}
@@ -384,6 +397,7 @@ class Bus(BusABC):
         if msg.data[0] != constants.CM_MSG_TYPE_BAM:
             for _listener in self.j1939_notifier.listeners:
                 if isinstance(_listener, Node):
+                    logger.debug("6")
                     # find a Node object so we can search its list of known node addresses
                     # for this node - if we find it we are responsible for sending the CTS message
                     if _listener.address == msg.arbitration_id.pgn.pdu_specific or msg.arbitration_id.pgn.pdu_specific in _listener.address_list:
@@ -400,6 +414,7 @@ class Bus(BusABC):
                         return
 
     def _process_cts(self, msg):
+        logger.debug("_process_cts")
         if msg.arbitration_id.pgn.pdu_specific in self._incomplete_transmitted_pdus:
             if msg.arbitration_id.source_address in self._incomplete_transmitted_pdus[
                     msg.arbitration_id.pgn.pdu_specific]:
