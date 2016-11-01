@@ -7,6 +7,18 @@ import json
 
 import can
 import j1939
+import logging
+
+lLevel = logging.DEBUG
+logger = logging.getLogger()
+
+if 0:
+    logger.setLevel(lLevel)
+    ch = logging.StreamHandler()
+    ch.setLevel(lLevel)
+    chformatter = logging.Formatter('%(name)25s | %(threadName)10s | %(levelname)5s | %(message)s')
+    ch.setFormatter(chformatter)
+    logger.addHandler(ch)
 
 
 
@@ -124,9 +136,11 @@ if __name__ == "__main__":
         print("Loaded filters from file: ", filters)
 
 
-    print("filter PGN's : ", args.pgn)
-    print("filter source: ", args.source)
-    print("filters      : ", filters)
+    print("args.channel  : ", args.channel)
+    print("args.interface: ", args.interface)
+    print("filter PGN's  : ", args.pgn)
+    print("filter source : ", args.source)
+    print("filters       : ", filters)
 
     bus = j1939.Bus(channel=args.channel, bustype=args.interface, j1939_filters=filters, timeout=0.1)
     log_start_time = datetime.datetime.now()

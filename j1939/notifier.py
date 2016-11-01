@@ -4,7 +4,7 @@ try:
 except ImportError:
     import Queue as queue
 
-#same as a CAN Notifier but will listen to a queue instead of a remove 
+#same as a CAN Notifier but will listen to a queue 
 #recv function.
 
 class Notifier(object):
