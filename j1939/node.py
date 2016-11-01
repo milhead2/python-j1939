@@ -8,6 +8,10 @@ from j1939.constants import *
 from j1939.pdu import PDU
 from j1939.nodename import NodeName
 
+logger = logging.getLogger(__name__)
+logger.debug("loading ", __name__)
+
+
 
 class J1939Error(CanError):
     pass
@@ -37,6 +41,7 @@ class Node(Listener):
     """
 
     def __init__(self, bus, name, address_list, pdu_type=PDU):
+        logger.debug("Node::__init__")
         self.bus = bus
         self.node_name = name
         self.address_list = address_list
@@ -47,6 +52,10 @@ class Node(Listener):
     @property
     def address(self):
         return self.known_node_addresses[self.node_name.value]
+
+    @property
+    def address_list(self):
+        return self.address_list
 
     def start_address_claim(self):
         self.claim_address(self.address_list[self._current_address_index])
@@ -97,6 +106,7 @@ class Node(Listener):
             if pdu.destination in (self.address, DESTINATION_ADDRESS_GLOBAL):
                 if pgn == PGN_AC_ADDRESS_CLAIMED:
                     self.claim_address(self.known_node_addresses[self.node_name.value])
+
 
     def send_parameter_group(self, pgn, data, destination_device_name=None):
         """

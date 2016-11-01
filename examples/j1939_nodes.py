@@ -4,6 +4,23 @@ from time import sleep
 
 import can
 import j1939
+import logging
+
+lLevel = logging.INFO
+
+logger = logging.getLogger()
+logger.setLevel(lLevel)
+ch = logging.StreamHandler()
+fh = logging.FileHandler('/tmp/j1939_nodes.log')
+fh.setLevel(lLevel)
+ch.setLevel(lLevel)
+formatter = logging.Formatter('%(asctime)s | %(name)20s | %(threadName)20s | %(levelname)5s | %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(ch)
+logger.addHandler(fh)
+
+
+
 
 
 def send_j1939():

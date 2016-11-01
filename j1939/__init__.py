@@ -61,7 +61,10 @@ class Bus(BusABC):
     def __init__(self, pdu_type=PDU, *args, **kwargs):
         logger.debug("Creating a new j1939 bus")
 
-        self.rx_can_message_queue = Queue()
+        #self.rx_can_message_queue = Queue()
+        self.queue = Queue()
+        self.node_queue_list = [(None,  self)]  ## Start with default logger Queue
+
 
         super(Bus, self).__init__()
         self._pdu_type = pdu_type
@@ -111,46 +114,76 @@ class Bus(BusABC):
         logger.debug("Creating a new can bus")
         self.can_bus = RawCanBus(*args, **kwargs)
         self.can_notifier = Notifier(self.can_bus, [self.notification], timeout=self.timeout)
-        #self.j1939_notifier = Notifier(self, [])
+        ###########self.j1939_notifier = Notifier(self, [])
 
         self._long_message_throttler.start()
 
-    def notification(self, msg):
-        self.rx_can_message_queue.put(msg)
+    def notification(self, inboundMessage):
+        #self.rx_can_message_queue.put(inboundMessage)
+
+        if isinstance(inboundMessage, Message):
+            logger.info('Got a Message from CAN: %s' % inboundMessage)
+            if inboundMessage.id_type:
+                # Extended ID
+                # Only J1939 messages (i.e. 29-bit IDs) should go further than this point.
+                # Non-J1939 systems can co-exist with J1939 systems, but J1939 doesn't care
+                # about the content of their messages.
+                logger.info('Message is j1939 msg')
+#                rx_pdu = self._process_incoming_message(inboundMessage)
+
+                #
+                # Need to determine if it's a broadcase message or 
+                # limit to listening nodes only
+                #
+                arbitration_id = ArbitrationID()
+                arbitration_id.can_id = inboundMessage.arbitration_id
+
+                # redirect the AC stuff to the node processors. the rest can go 
+                # to the main queue.
+                for (node, notifier) in self.node_queue_list:
+                    if node and (arbitration_id.pgn in [PGN_AC_ADDRESS_CLAIMED, PGN_AC_COMMANDED_ADDRESS, PGN_REQUEST_FOR_PGN]):
+                        # send the PDU to the node processor.
+                        notitier.queue.put(inboundMessage)
+                    elif node==None:
+                        # always send the message to the logging queue
+                        self.queue.put(inboundMessage)
+
+            else:
+                logger.info("Received non J1939 message (ignoring)")
+
+    def connect(self, node):
+        """
+        Attach a listening node (with a dest address) to the J1939 bus
+        """
+        if not isinstance(node, j1939.Node):
+            raise ValueError("bad parameter for node, must be a J1939 node object")
+
+        notifier = Notifier(Queue(), node.on_message_received, timeout=None)
+        self.node_queue_list.append((node, notifier))
 
 
     def recv(self, timeout=None):
         logger.debug("Waiting for new message")
         logger.debug("Timeout is {}".format(timeout))
         try:
-            m = self.rx_can_message_queue.get(timeout=timeout)
+            #m = self.rx_can_message_queue.get(timeout=timeout)
+            m = self.queue.get(timeout=timeout)
         except Empty:
             return
 
         rx_pdu = None
 
-        if isinstance(m, Message):
-            logger.info('Got a Message: %s' % m)
-            if m.id_type:
-                # Extended ID
-                # Only J1939 messages (i.e. 29-bit IDs) should go further than this point.
-                # Non-J1939 systems can co-exist with J1939 systems, but J1939 doesn't care
-                # about the content of their messages.
-                logger.info('Message is j1939 msg')
-                rx_pdu = self._process_incoming_message(m)
-            else:
-                logger.info("Received non J1939 message (ignoring)")
 
-            # TODO: Decide what to do with CAN errors
-            if m.is_error_frame:
-                logger.warning("Appears we got an error frame!")
+        # TODO: Decide what to do with CAN errors
+        if m.is_error_frame:
+            logger.warning("Appears we got an error frame!")
 
-                #rx_error = CANError(timestamp=m.timestamp)
-                # if rx_error is not None:
-                #     logger.info('Sending error "%s" to registered listeners.' % rx_error)
-                #     for listener in self.listeners:
-                #         if hasattr(listener, 'on_error_received'):
-                #             listener.on_error_received(rx_error)
+            #rx_error = CANError(timestamp=m.timestamp)
+            # if rx_error is not None:
+            #     logger.info('Sending error "%s" to registered listeners.' % rx_error)
+            #     for listener in self.listeners:
+            #         if hasattr(listener, 'on_error_received'):
+            #             listener.on_error_received(rx_error)
 
         # Return to BusABC where it will get fed to any listeners
         return rx_pdu
