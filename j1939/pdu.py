@@ -85,10 +85,14 @@ class PDU(object):
             self._arbitration_id = other
 
     def _check_data(self, value):
+        assert isinstance(value, (list, bytearray)), 'Needs to be list received {}, {}'.format(type(value), value)
         assert len(value) <= 1785, 'Too much data to fit in a j1939 CAN message. Got {0} bytes'.format(len(value))
         if len(value) > 0:
-            assert min(value) >= 0, 'Data values must be between 0 and 255'
-            assert max(value) <= 255, 'Data values must be between 0 and 255'
+            for element in value:
+                if isinstance(element, str):
+                    element = int(element)
+                assert element >= 0, 'Data values must be between 0 and 255, element={}'.format(element)
+                assert element <= 255, 'Data values must be between 0 and 255'
         return value
 
     def data_segments(self, segment_length=8):
