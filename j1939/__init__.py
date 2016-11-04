@@ -187,8 +187,10 @@ class Bus(BusABC):
 
 
     def send(self, msg):
+        logger.info("j1939.send: msg=%s" % msg)
         messages = []
         if len(msg.data) > 8:
+            logger.info("j1939.send: message is > than 8 bytes")
             # Making a copy of the PDU so that the original
             # is not altered by the data padding.
             pdu = copy.deepcopy(msg)
@@ -278,6 +280,7 @@ class Bus(BusABC):
                                   dlc=len(msg.data),
                                   data=msg.data)
 
+            logger.info("j1939.send: calling can_bus_send: \n %s" % can_message)
             self.can_bus.send(can_message)
 
     def shutdown(self):
@@ -426,7 +429,7 @@ class Bus(BusABC):
             msg.arbitration_id.pgn.pdu_specific] = {"total": _message_size, "chunk": 255, "num_packages": msg.data[3], }
 
         if msg.data[0] != CM_MSG_TYPE_BAM:
-            for _listener in self.j1939_notifier.listeners:
+            for _listener in self.can_notifier.listeners:
                 if isinstance(_listener, Node):
                     logger.debug("6")
                     # find a Node object so we can search its list of known node addresses
