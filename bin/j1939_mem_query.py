@@ -33,17 +33,16 @@ if __name__ == "__main__":
     node = j1939.Node(bus, j1939.NodeName(), [19])
     bus.connect(node)
 
-    logger.info("bus: %s"
     node.start_address_claim()
-    node.claim_address(18)
+    node.claim_address(19)
 
     time.sleep(5)
     
     pgn = j1939.PGN()
     pgn.value = 0xd900
-    logger.info("pgn: ", pgn)
+    logger.info("pgn: %s" % pgn)
     aid = j1939.ArbitrationID(priority=7, pgn=pgn, source_address=0x19, destination_address=0x17)
-    logger.info("aid: ", aid)
+    logger.info("aid: %s" % aid)
     if pgn.is_destination_specific:
         logger.info("Destination Specific. dest=0x{:02x}".format(aid.destination_address))
 
@@ -52,7 +51,7 @@ if __name__ == "__main__":
     data = [0x10, 0x13, 0x11, 0x00, 0x00, 0xe9, 0xff, 0xff]
     pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
     pdu.display_radix='hex'
-    logger.info("pdu: ", pdu)
+    logger.info("pdu: %s" % pdu)
 
     logger.info("can Id: 0x{:08x}".format(pdu.arbitration_id.can_id))
 

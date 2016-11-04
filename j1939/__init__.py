@@ -299,6 +299,7 @@ class Bus(BusABC):
         pdu = self._pdu_type(timestamp=msg.timestamp, data=msg.data, info_strings=[])
         pdu.arbitration_id.can_id = msg.arbitration_id
         pdu.info_strings = []
+        logging.debug(pdu)
 
         if arbitration_id.pgn.value == PGN_TP_CONNECTION_MANAGEMENT:
             logger.debug("PGN_TP_CONNECTION_MANAGEMENT")
