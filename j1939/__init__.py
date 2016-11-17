@@ -128,13 +128,13 @@ class Bus(BusABC):
                 logger.info('Message is j1939 msg')
 
                 #
-                # Need to determine if it's a broadcase message or 
+                # Need to determine if it's a broadcase message or
                 # limit to listening nodes only
                 #
                 arbitration_id = ArbitrationID()
                 arbitration_id.can_id = inboundMessage.arbitration_id
 
-                # redirect the AC stuff to the node processors. the rest can go 
+                # redirect the AC stuff to the node processors. the rest can go
                 # to the main queue.
                 for (node, l_notifier) in self.node_queue_list:
                     logger.info("node=%s, notifier=%s" % (node, l_notifier))
@@ -164,8 +164,8 @@ class Bus(BusABC):
 
 
     def recv(self, timeout=None):
-        logger.debug("Waiting for new message")
-        logger.debug("Timeout is {}".format(timeout))
+        #logger.debug("Waiting for new message")
+        #logger.debug("Timeout is {}".format(timeout))
         try:
             #m = self.rx_can_message_queue.get(timeout=timeout)
             rx_pdu = self.queue.get(timeout=timeout)
@@ -396,6 +396,7 @@ class Bus(BusABC):
                 msg.arbitration_id.pgn.pdu_specific]
 
         if msg.data[0] == CM_MSG_TYPE_BAM:
+            logger.debug("CM_MSG_TYPE_BAM")
             self._incomplete_received_pdus[msg.arbitration_id.source_address][0xFF] = self._pdu_type()
             self._incomplete_received_pdus[msg.arbitration_id.source_address][0xFF].arbitration_id.pgn.value = int(
                 ("%.2X%.2X%.2X" % (msg.data[7], msg.data[6], msg.data[5])), 16)
@@ -412,6 +413,7 @@ class Bus(BusABC):
                                                                                               "num_packages": msg.data[
                                                                                                   3], }
         else:
+            logger.debug("not CM_MSG_TYPE_BAM")
             self._incomplete_received_pdus[msg.arbitration_id.source_address][
                 msg.arbitration_id.pgn.pdu_specific] = self._pdu_type()
             self._incomplete_received_pdus[msg.arbitration_id.source_address][
@@ -430,6 +432,8 @@ class Bus(BusABC):
             msg.arbitration_id.pgn.pdu_specific] = {"total": _message_size, "chunk": 255, "num_packages": msg.data[3], }
 
         if msg.data[0] != CM_MSG_TYPE_BAM:
+            logger.debug("not CM_MSG_TYPE_BAM--2")
+            logger.debug("self.can_notifier.listeners = %s" % self.can_notifier.listeners)
             for _listener in self.can_notifier.listeners:
                 if isinstance(_listener, Node):
                     logger.debug("6")
