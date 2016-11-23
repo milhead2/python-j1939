@@ -1,3 +1,9 @@
+import logging
+logger = logging.getLogger(__name__)
+
+
+
+
 class PGN(object):
 
     def __init__(self, reserved_flag=False, data_page_flag=False, pdu_format=0, pdu_specific=0):
@@ -31,17 +37,32 @@ class PGN(object):
         self.pdu_specific = value & 0x0000FF
 
     @staticmethod
-    def from_value(value):
+    def from_value(pgn_value):
+        logger.info("PGN.@from_value, pgn_value=0x%08x" % (pgn_value))
         pgn = PGN()
-        pgn.value = value
+        pgn.reserved_flag = (pgn_value & 0x020000) >> 17
+        pgn.data_page_flag = (pgn_value & 0x010000) >> 16
+        pgn.pdu_format = (pgn_value & 0x00FF00) >> 8
+        pgn.pdu_specific = pgn_value & 0x0000FF
+        return pgn
+
+    @staticmethod
+    def from_can_id(canid):
+        logger.info("PGN.@from_can_id, value=0x%08x" % (canid))
+        canid = canid>>8
+        pgn = PGN()
+        logger.info("PGN.@from_can_id, value=0x%08x" % (canid))
+        pgn.reserved_flag = (canid & 0x020000) >> 17
+        pgn.data_page_flag = (canid & 0x010000) >> 16
+        pgn.pdu_format = (canid & 0x00FF00) >> 8
+        pgn.pdu_specific = canid & 0x0000FF
+        logger.info("PGN.@from_can_id, res=%d, dp=%d, pdu_format=0x%02x, pdu_specific=0x%02x" %
+                (pgn.reserved_flag, pgn.data_page_flag, pgn.pdu_format, pgn.pdu_specific))
         return pgn
 
     def __str__(self):
-        retval = ""
-        _temp = self.value
-        if self.is_destination_specific:
-            _temp -= self.pdu_specific
-        retval += ("0x%.4x " % (_temp & 0xFFFF))
+        retval = ("0x%.4x " % ((((self.pdu_format)<<8) | (self.pdu_specific)) & 0xFFFF))
+
         if self.reserved_flag:
             retval += "R "
         else:
@@ -50,4 +71,5 @@ class PGN(object):
             retval += "P "
         else:
             retval += "  "
+
         return retval
