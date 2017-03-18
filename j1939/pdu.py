@@ -32,7 +32,7 @@ class PDU(object):
             info_strings = []
         self.timestamp = timestamp
         if arbitration_id:
-            assert(isinstance(arbitration_id, J1939.ArbitrationID))
+            assert(isinstance(arbitration_id, ArbitrationID))
         self.arbitration_id = arbitration_id
         self.data = self._check_data(data)
         self.info_strings = info_strings

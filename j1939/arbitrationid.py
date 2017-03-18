@@ -49,7 +49,7 @@ class ArbitrationID(object):
 
     @property
     def can_id(self):
-        logger.info("can_id property: ")
+        logger.info("can_id property: self.pgn.is_destination_specific=%s" % self.pgn.is_destination_specific)
 
         if self.pgn.is_destination_specific:
             logger.info("can_id: self.pgn.is_destination_specific, dest=%x, pgn_value=%x, pdu_format=0x%x, pdu_specific=0x%x, pri=%x" %
@@ -60,7 +60,7 @@ class ArbitrationID(object):
                     self.priority))
 
             retval = (self.source_address +
-                     (self.pgn.value << 8) +
+                     ((self.pgn.value & 0xff00) + (self.destination_address_value) << 8)+
                      (self.priority << 26))
             logger.info("can_id: retval=0x%08x" % (retval))
             return retval
