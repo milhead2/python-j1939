@@ -1,6 +1,9 @@
+import logging
+
 from j1939.pgn import PGN
 from j1939.constants import *
 
+logger = logging.getLogger(__name__)
 
 class ArbitrationID(object):
 
@@ -35,8 +38,21 @@ class ArbitrationID(object):
 
     @property
     def can_id(self):
+        logger.info("j1939.arbitrationid.can_id: self.pgn.is_destination_specific")
+        logger.info("       self.pgn.is_destination_specific=%s" % self.pgn.is_destination_specific)
+        logger.info("       self.source_address=%s" % self.source_address)
+        logger.info("       self.destination_address_value=%s" % self.destination_address_value)
+        logger.info("       self.pgn.value=0x%08x" % self.pgn.value)
+        logger.info("       self.priority=%s" % self.priority)
+
         if self.pgn.is_destination_specific:
-            return (self.source_address + (self.destination_address_value << 8) + (self.pgn.value << 8) + (self.priority << 26))
+            # TODO: Not sure why I get the dest address in both the PGN and dest_addr...  In
+            # any case if it's dest specificx and I have it in both, remove it from the pgn before
+            # building the CAN ID
+            if self.pgn.value & 0x00ff:
+                return (self.source_address + (self.destination_address_value << 8) + ((self.pgn.value & 0xff00) << 8) + (self.priority << 26))
+            else:
+                return (self.source_address + (self.destination_address_value << 8) + (self.pgn.value << 8) + (self.priority << 26))
         else:
             return (self.source_address + (self.pgn.value << 8) + (self.priority << 26))
 
@@ -64,7 +80,7 @@ class ArbitrationID(object):
             raise ValueError("PGN is not dest specific: {:04x}".format(self.pgn))
         else:
             self.destination_address_value = addr
-    
+
 
     @property
     def pgn(self):

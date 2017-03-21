@@ -128,13 +128,13 @@ class Bus(BusABC):
                 logger.info('Message is j1939 msg')
 
                 #
-                # Need to determine if it's a broadcase message or 
+                # Need to determine if it's a broadcase message or
                 # limit to listening nodes only
                 #
                 arbitration_id = ArbitrationID()
                 arbitration_id.can_id = inboundMessage.arbitration_id
 
-                # redirect the AC stuff to the node processors. the rest can go 
+                # redirect the AC stuff to the node processors. the rest can go
                 # to the main queue.
                 for (node, l_notifier) in self.node_queue_list:
                     logger.info("node=%s, notifier=%s" % (node, l_notifier))
@@ -164,8 +164,8 @@ class Bus(BusABC):
 
 
     def recv(self, timeout=None):
-        logger.debug("Waiting for new message")
-        logger.debug("Timeout is {}".format(timeout))
+        #logger.debug("Waiting for new message")
+        #logger.debug("Timeout is {}".format(timeout))
         try:
             #m = self.rx_can_message_queue.get(timeout=timeout)
             rx_pdu = self.queue.get(timeout=timeout)
@@ -275,6 +275,12 @@ class Bus(BusABC):
                     # for receiving devices to acknowledge
                     self._long_message_segment_queue.put_nowait(message)
         else:
+            logger.info("j1939.send: smaller than 8 bytes: \n %s" % msg)
+            logger.info("j1939.send: arbitration_id=%s" % msg.arbitration_id)
+            logger.info("j1939.send: arbitration_id.can_id=0x%08x" % msg.arbitration_id.can_id)
+            logger.info("j1939.send: extended_id=%s" % True)
+            logger.info("j1939.send: dlc=%s" % len(msg.data))
+            logger.info("j1939.send: data=%s" % msg.data)
             can_message = Message(arbitration_id=msg.arbitration_id.can_id,
                                   extended_id=True,
                                   dlc=len(msg.data),

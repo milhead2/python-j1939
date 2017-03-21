@@ -44,7 +44,7 @@ def parse_arguments():
     How much information do you want to see at the command line?
     You can add several of these e.g., -vv is DEBUG'''), default=2)
 
-    parser.add_argument('-x', '--hex-out', 
+    parser.add_argument('-x', '--hex-out',
                         action='store_true',
                         help=textwrap.dedent('''\
     hex data in output
