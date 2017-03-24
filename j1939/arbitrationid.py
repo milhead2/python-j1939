@@ -122,5 +122,5 @@ class ArbitrationID(object):
             retval = "PRI=%d PGN=%6s DST=0x%.2x SRC=0x%.2x" % (
                 self.priority, self.pgn, self.destination_address_value, self.source_address)
         else:
-            retval = "PRI=%d PGN=%6s          SRC=0x%.2x" % (self.priority, self.pgn, self.source_address)
+            retval = "PRI=%d PGN=%6s          SRC=0x%.2x " % (self.priority, self.pgn, self.source_address)
         return retval

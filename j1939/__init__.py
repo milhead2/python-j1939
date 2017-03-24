@@ -12,6 +12,7 @@ import threading
 import logging
 import pprint
 
+
 try:
     from queue import Queue, Empty
 except ImportError:
@@ -126,13 +127,13 @@ class Bus(BusABC):
         #self.rx_can_message_queue.put(inboundMessage)
 
         if isinstance(inboundMessage, Message):
-            logger.info('Got a Message from CAN: %s' % inboundMessage)
+            logger.info('\n\nnotification: Got a Message from CAN: %s' % inboundMessage)
             if inboundMessage.id_type:
                 # Extended ID
                 # Only J1939 messages (i.e. 29-bit IDs) should go further than this point.
                 # Non-J1939 systems can co-exist with J1939 systems, but J1939 doesn't care
                 # about the content of their messages.
-                logger.info('Message is j1939 msg')
+                logger.info('notification: Message is j1939 msg')
 
                 #
                 # Need to determine if it's a broadcase message or
@@ -140,31 +141,41 @@ class Bus(BusABC):
                 #
                 arbitration_id = ArbitrationID()
                 arbitration_id.can_id = inboundMessage.arbitration_id
-                logger.debug('ArbitrationID = %s' % (arbitration_id))
+                logger.debug('notification: ArbitrationID = %s' % (arbitration_id))
 
                 for (node, l_notifier) in self.node_queue_list:
-                    logger.info("node=%s, notifier=%s" % (node, l_notifier))
+                    logger.info("notification: node=%s" % (node))
+                    logger.info("              notifier=%s" % (l_notifier))
+                    logger.info("              arbitration_id.pgn=%s" % (arbitration_id.pgn))
+                    logger.info("              destination_address=%s" % (arbitration_id.destination_address))
 
                     # redirect the AC stuff to the node processors. the rest can go
                     # to the main queue.
                     if node and (arbitration_id.pgn in [PGN_AC_ADDRESS_CLAIMED, PGN_AC_COMMANDED_ADDRESS, PGN_REQUEST_FOR_PGN]):
-                        logger.info("sending to notifier queue")
+                        logger.info("notification: sending to notifier queue")
                         # send the PDU to the node processor.
                         l_notifier.queue.put(inboundMessage)
 
                     # if node has the destination address, do something with the PDU
                     #
                     elif node and (arbitration_id.destination_address in node.address_list):
-                        logger.info("sending to general queue")
+                        logger.info("notification: sending to general queue")
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         self.queue.put(rx_pdu)
 
+                    elif node and (arbitration_id.destination_address == None):
+                        logger.info("notification: sending broadcast to general queue")
+                        rx_pdu = self._process_incoming_message(inboundMessage)
+                        self.queue.put(rx_pdu)
 
                     elif node==None:
                         # always send the message to the logging queue
-                        logger.info("sending to general queue")
+                        logger.info("notification: sending to general queue")
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         self.queue.put(rx_pdu)
+
+                    else:
+                        logger.info("notification: pdu dropped: %s\n\n" % inboundMessage)
 
             else:
                 logger.info("Received non J1939 message (ignoring)")
