@@ -53,6 +53,10 @@ class PDU(object):
         return True
 
     @property
+    def dat(self):
+        return self.data
+
+    @property
     def pgn(self):
         if self.arbitration_id.pgn.is_destination_specific:
             return self.arbitration_id.pgn.value & 0xFF00
