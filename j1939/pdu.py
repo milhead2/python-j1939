@@ -31,6 +31,8 @@ class PDU(object):
         if info_strings is None:
             info_strings = []
         self.timestamp = timestamp
+        if arbitration_id:
+            assert(isinstance(arbitration_id, ArbitrationID))
         self.arbitration_id = arbitration_id
         self.data = self._check_data(data)
         self.info_strings = info_strings
@@ -49,6 +51,10 @@ class PDU(object):
         if self.destination != other.destination:
             return False
         return True
+
+    @property
+    def dat(self):
+        return self.data
 
     @property
     def pgn(self):
@@ -79,10 +85,10 @@ class PDU(object):
     def arbitration_id(self, other):
         if other is None:
             self._arbitration_id = ArbitrationID()
-        elif not isinstance(other, ArbitrationID):
-            self._arbitration_id = ArbitrationID(other)
-        else:
+        elif isinstance(other, ArbitrationID):
             self._arbitration_id = other
+        else:
+            assert(0)
 
     def _check_data(self, value):
         assert isinstance(value, (list, bytearray)), 'Needs to be list received {}, {}'.format(type(value), value)

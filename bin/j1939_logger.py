@@ -9,10 +9,10 @@ import can
 import j1939
 import logging
 
-lLevel = logging.DEBUG
+lLevel = logging.WARNING
 logger = logging.getLogger()
 
-if 0:
+if 1:
     logger.setLevel(lLevel)
     ch = logging.StreamHandler()
     ch.setLevel(lLevel)
@@ -145,12 +145,14 @@ if __name__ == "__main__":
     bus = j1939.Bus(channel=args.channel, bustype=args.interface, j1939_filters=filters, timeout=0.1)
     log_start_time = datetime.datetime.now()
     print('can.j1939 logger started on {}\n'.format(log_start_time))
+    logger.info('can.j1939 logger started on {}\n'.format(log_start_time))
 
     try:
         for msg in bus:
             if args.hex_out:
                 msg.display_radix = 'hex'
             print(msg)
+            logger.info(msg)
     except KeyboardInterrupt:
         bus.shutdown()
         print()
