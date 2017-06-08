@@ -23,7 +23,7 @@ import copy
 
 # By this stage the can.rc should have been set up
 from can import Message
-from can.interfaces.interface import Bus as RawCanBus
+from can.interface import Bus as RawCanBus
 from can.notifier import Notifier as canNotifier
 from can.bus import BusABC
 
