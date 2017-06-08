@@ -21,7 +21,6 @@ if 1:
     logger.addHandler(ch)
 
 
-
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description=textwrap.dedent("""\
@@ -134,7 +133,6 @@ if __name__ == "__main__":
     if args.filter is not None:
         filters = json.load(args.filter)
         print("Loaded filters from file: ", filters)
-
 
     print("args.channel  : ", args.channel)
     print("args.interface: ", args.interface)
