@@ -21,7 +21,6 @@ if 1:
     logger.addHandler(ch)
 
 
-
 def parse_arguments():
     parser = argparse.ArgumentParser(
         description=textwrap.dedent("""\
@@ -95,7 +94,7 @@ def parse_arguments():
     '''))
 
     parser.add_argument('-i', '--interface', dest="interface",
-                        #choices=can.interface.VALID_INTERFACES,
+                        #choices=can.interfaces.VALID_INTERFACES,
                         help=textwrap.dedent('''\
     Specify the backend CAN interface to use.
 
@@ -103,7 +102,7 @@ def parse_arguments():
         {}
 
     Alternatively the CAN_INTERFACE environment variable can be set.
-    '''.format(can.interface.VALID_INTERFACES)))
+    '''.format(can.interfaces.VALID_INTERFACES)))
 
     return parser.parse_args()
 
@@ -134,7 +133,6 @@ if __name__ == "__main__":
     if args.filter is not None:
         filters = json.load(args.filter)
         print("Loaded filters from file: ", filters)
-
 
     print("args.channel  : ", args.channel)
     print("args.interface: ", args.interface)
