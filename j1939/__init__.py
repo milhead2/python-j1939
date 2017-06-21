@@ -18,7 +18,6 @@ try:
 except ImportError:
     from Queue import Queue, Empty
 
-import time
 import copy
 
 # By this stage the can.rc should have been set up

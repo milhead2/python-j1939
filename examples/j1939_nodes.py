@@ -1,12 +1,10 @@
 from __future__ import print_function
 
-from time import sleep
-
 import can
 import j1939
 import logging
 
-lLevel = logging.DEBUG
+lLevel = logging.WARNING
 
 logger = logging.getLogger()
 logger.setLevel(lLevel)
@@ -52,18 +50,8 @@ def send_j1939():
         msg = j1939.PDU(arbitration_id=arbitration_id,
                         data=[0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80])
 
-    sleep(0.5)
     node1.start_address_claim()
-    sleep(0.5)
 
-    if 0:
-        try:
-            bus.send(msg)
-            logging.debug("Message sent on {}".format(bus.channel_info))
-        except can.CanError:
-            logging.debug("Message NOT sent")
-
-    sleep(1)
     bus.flush_tx_buffer()
     bus.shutdown()
 
