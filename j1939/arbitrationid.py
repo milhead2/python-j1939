@@ -5,8 +5,6 @@ from j1939.constants import *
 import logging
 logger = logging.getLogger(__name__)
 
-logger = logging.getLogger(__name__)
-
 class ArbitrationID(object):
 
     def __init__(self, priority=7, pgn=None, source_address=0, destination_address=None):
@@ -25,7 +23,7 @@ class ArbitrationID(object):
 
         """
         self.priority = priority
-        if pgn == None:
+        if pgn is None: 
             pgn = PGN()
 
         if pgn and (not isinstance(pgn, PGN)):
@@ -44,6 +42,8 @@ class ArbitrationID(object):
                                 logger.debug("self.destination_address_value = %x, pgn.pdu_specific = %x" %
                                         (self.destination_address_value, pgn.pdu_specific))
 
+                        print("self.destination_address_value = %x, pgn.pdu_specific = %x" %
+                                (self.destination_address_value, pgn.pdu_specific))
                         assert( self.destination_address_value == pgn.pdu_specific)
                     else:
                         raise ValueError("desttiantion address must be in range (0-255)")

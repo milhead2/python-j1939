@@ -348,7 +348,7 @@ class Bus(BusABC):
         assert(len(data) == 8)
 
         seed = (data[5] << 24) + (data[4] << 16) + (data[3] << 8) + data[2]
-        if self._key_generation_fcn == None:
+        if self._key_generation_fcn is None:
             return None
         key = self._key_generation_fcn(seed)
 
