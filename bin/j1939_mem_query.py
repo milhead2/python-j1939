@@ -100,6 +100,7 @@ if __name__ == "__main__":
     print("elapsed = %s s" % (timeit.default_timer() - start))
 
 
+    # just a blurb to see
     start = timeit.default_timer()
-    time.sleep(5)
+    time.sleep(1)
     print("elapsed = %s s" % (timeit.default_timer() - start))
