@@ -41,7 +41,7 @@ class ArbitrationID(object):
                     if destination_address >= 0 and destination_address <= 255:
                         self.destination_address_value = destination_address
                         if  self.destination_address_value != pgn.pdu_specific:
-                                logger.info("self.destination_address_value = %x, pgn.pdu_specific = %x" %
+                                logger.debug("self.destination_address_value = %x, pgn.pdu_specific = %x" %
                                         (self.destination_address_value, pgn.pdu_specific))
 
                         assert( self.destination_address_value == pgn.pdu_specific)
@@ -52,10 +52,10 @@ class ArbitrationID(object):
 
     @property
     def can_id(self):
-        logger.info("can_id property: self.pgn.is_destination_specific=%s" % self.pgn.is_destination_specific)
+        logger.debug("can_id property: self.pgn.is_destination_specific=%s" % self.pgn.is_destination_specific)
 
         if self.pgn.is_destination_specific:
-            logger.info("can_id: self.pgn.is_destination_specific, dest=%x, pgn_value=%x, pdu_format=0x%x, pdu_specific=0x%x, pri=%x" %
+            logger.debug("can_id: self.pgn.is_destination_specific, dest=%x, pgn_value=%x, pdu_format=0x%x, pdu_specific=0x%x, pri=%x" %
                     (self.destination_address_value,
                     self.pgn.value,
                     self.pgn.pdu_format,
@@ -65,10 +65,10 @@ class ArbitrationID(object):
             retval = (self.source_address +
                      ((self.pgn.value & 0xff00) + (self.destination_address_value) << 8)+
                      (self.priority << 26))
-            logger.info("can_id: retval=0x%08x" % (retval))
+            logger.debug("can_id: retval=0x%08x" % (retval))
             return retval
         else:
-            logger.info("can_id: NOT! self.pgn.is_destination_specific")
+            logger.debug("can_id: NOT! self.pgn.is_destination_specific")
             return (self.source_address + (self.pgn.value << 8) + (self.priority << 26))
 
     @can_id.setter
@@ -76,7 +76,7 @@ class ArbitrationID(object):
         """
         Int between 0 and (2**29) - 1
         """
-        logger.info("can_id setter: canid=0x%08x" % (canid))
+        logger.debug("can_id setter: canid=0x%08x" % (canid))
         self.priority = (canid & 0x1C000000) >> 26
         self.pgn = PGN().from_can_id(canid)
         self.source_address = canid & 0x000000FF
@@ -84,7 +84,7 @@ class ArbitrationID(object):
             self.destination_address_value = (canid & 0x0000FF00) >> 8
 
 
-        logger.info("can_id: canid=0x%08x, priority=%x, pdu_format=%x, pdu_specific=%x, src=%x" %
+        logger.debug("can_id: canid=0x%08x, priority=%x, pdu_format=%x, pdu_specific=%x, src=%x" %
                 (canid,
                 self.priority,
                 self.pgn.pdu_format,
@@ -98,11 +98,11 @@ class ArbitrationID(object):
             return None
 
     @destination_address.setter
-    def destination_address(self, addr):
+    def destination_address(self, value):
         if not self.pgn.is_destination_specific:
             raise ValueError("PGN is not dest specific: {:04x}".format(self.pgn))
         else:
-            self.destination_address_value = addr
+            self.destination_address_value = value
 
 
     @property
@@ -119,11 +119,11 @@ class ArbitrationID(object):
             self._pgn = other
 
     def __str__(self):
-        logger.info("arbitrationid.__str__: pri:%s, pgn:%s, dest:%s, src:%s" %
-                (self.priority, self.pgn, self.destination_address_value, self.source_address))
+        logger.debug("arbitrationid.__str__: ids:%d, pri:%s, pgn:%s, dest:%s, src:%s" %
+                (self.pgn.is_destination_specific, self.priority, self.pgn, self.destination_address_value, self.source_address))
         if self.pgn.is_destination_specific:
             retval = "PRI=%d PGN=%6s DST=0x%.2x SRC=0x%.2x" % (
                 self.priority, self.pgn, self.destination_address_value, self.source_address)
         else:
-            retval = "PRI=%d PGN=%6s          SRC=0x%.2x " % (self.priority, self.pgn, self.source_address)
+            retval = "PRI=%d PGN=%6s          SRC=0x%.2x" % (self.priority, self.pgn, self.source_address)
         return retval

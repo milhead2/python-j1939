@@ -38,7 +38,7 @@ class PGN(object):
 
     @staticmethod
     def from_value(pgn_value):
-        logger.info("PGN.@from_value, pgn_value=0x%08x" % (pgn_value))
+        logger.debug("PGN.@from_value, pgn_value=0x%08x" % (pgn_value))
         pgn = PGN()
         pgn.reserved_flag = (pgn_value & 0x020000) >> 17
         pgn.data_page_flag = (pgn_value & 0x010000) >> 16
@@ -48,15 +48,15 @@ class PGN(object):
 
     @staticmethod
     def from_can_id(canid):
-        logger.info("PGN.@from_can_id, value=0x%08x" % (canid))
+        #logger.debug("PGN.@from_can_id, value=0x%08x" % (canid))
         canid = canid>>8
         pgn = PGN()
-        logger.info("PGN.@from_can_id, value=0x%08x" % (canid))
+        #logger.debug("PGN.@from_can_id, value=0x%08x" % (canid))
         pgn.reserved_flag = (canid & 0x020000) >> 17
         pgn.data_page_flag = (canid & 0x010000) >> 16
         pgn.pdu_format = (canid & 0x00FF00) >> 8
         pgn.pdu_specific = canid & 0x0000FF
-        logger.info("PGN.@from_can_id, res=%d, dp=%d, pdu_format=0x%02x, pdu_specific=0x%02x" %
+        logger.debug("PGN.@from_can_id, res=%d, dp=%d, pdu_format=0x%02x, pdu_specific=0x%02x" %
                 (pgn.reserved_flag, pgn.data_page_flag, pgn.pdu_format, pgn.pdu_specific))
         return pgn
 

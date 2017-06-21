@@ -34,7 +34,7 @@ class PDU(object):
         if arbitration_id:
             assert(isinstance(arbitration_id, ArbitrationID))
         self.arbitration_id = arbitration_id
-        self.data = self._check_data(data)
+        self._data = self._check_data(data)
         self.info_strings = info_strings
         self.radix=RADIX_DECIMAL
 
@@ -44,7 +44,7 @@ class PDU(object):
             return False
         if self.pgn != other.pgn:
             return False
-        if self.data != other.data:
+        if self._data != other.data:
             return False
         if self.source != other.source:
             return False
@@ -53,8 +53,12 @@ class PDU(object):
         return True
 
     @property
-    def dat(self):
-        return self.data
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        self._data = data
 
     @property
     def pgn(self):
@@ -68,10 +72,20 @@ class PDU(object):
         """Destination address of the message"""
         return self.arbitration_id.destination_address
 
+    @destination.setter
+    def destination(self, destination):
+        """Destination address of the message"""
+        self.arbitration_id.destination_address = destination
+
     @property
     def source(self):
         """Source address of the message"""
         return self.arbitration_id.source_address
+
+    @source.setter
+    def source(self, source):
+        """Source address of the message"""
+        self.arbitration_id.source_address = source
 
     @property
     def is_address_claim(self):
@@ -160,6 +174,8 @@ class PDU(object):
         :return: A string representation of this message.
 
         """
+        #logger.info("PI07: stringify PDU")
+
         if self.radix == RADIX_HEX:
             data_string = " ".join("{:02x}".format(byte) for byte in self.data)
         else:
