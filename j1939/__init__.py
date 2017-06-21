@@ -12,7 +12,6 @@ import threading
 import logging
 import pprint
 
-
 try:
     from queue import Queue, Empty
 except ImportError:
@@ -22,8 +21,10 @@ import copy
 
 # By this stage the can.rc should have been set up
 from can import Message
+
 from can import set_logging_level as can_set_logging_level
 from can.interfaces.interface import Bus as RawCanBus
+
 from can.notifier import Notifier as canNotifier
 from can.bus import BusABC
 
@@ -44,8 +45,8 @@ logger.setLevel(logging.WARNING)
 
 can_set_logging_level('warning')
 
-class Bus(BusABC):
 
+class Bus(BusABC):
     """
     A CAN Bus that implements the J1939 Protocol.
 
@@ -67,16 +68,11 @@ class Bus(BusABC):
         #self.rx_can_message_queue = Queue()
 
         self.queue = Queue()
-        if 'name' in kwargs and kwargs['name'] is not None:
-            logger.info("J1939 Bus Q, %s, QQ=%s" % (kwargs['name'], self.queue) )
-        else:
-            logger.info("J1939 Bus Q, UNNAMED, QQ=%s" % (self.queue) )
-
-        self.node_queue_list = [] # Start with nothing
+        self.node_queue_list = []  # Start with nothing
 
         super(Bus, self).__init__()
         self._pdu_type = pdu_type
-        self.timeout=1
+        self.timeout = 1
         self._long_message_throttler = threading.Thread(target=self._throttler_function)
         #self._long_message_throttler.daemon = True
 
@@ -90,8 +86,7 @@ class Bus(BusABC):
 
 
         if broadcast:
-            self.node_queue_list = [(None,  self)]  # Start with default logger Queue
-                                                    # which will receive everything
+            self.node_queue_list = [(None,  self)]  # Start with default logger Queue which will receive everything
 
         # Convert J1939 filters into Raw Can filters
 
@@ -123,7 +118,7 @@ class Bus(BusABC):
 
         if 'timeout' in kwargs and kwargs['timeout'] is not None:
             if isinstance(kwargs['timeout'], (int, float)):
-                self.timeout=kwargs['timeout']
+                self.timeout = kwargs['timeout']
             else:
                 raise ValueError("Bad timeout type")
 
@@ -175,13 +170,13 @@ class Bus(BusABC):
                             logger.info("WP02: notification: sent to general queue: %s QQ=%s" % (rx_pdu, self.queue))
                             self.queue.put(rx_pdu)
 
-                    elif node and (arbitration_id.destination_address == None):
+                    elif node and (arbitration_id.destination_address is None):
                         logger.info("notification: sending broadcast to general queue")
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         logger.info("WP01: notification: sent broadcast to general queue: %s QQ=%s" % (rx_pdu, self.queue))
                         self.queue.put(rx_pdu)
 
-                    elif node==None:
+                    elif node is None:
                         # always send the message to the logging queue
                         logger.info("notification: sending to general queue")
                         rx_pdu = self._process_incoming_message(inboundMessage)
@@ -205,7 +200,6 @@ class Bus(BusABC):
         notifier = Notifier(Queue(), node.on_message_received, timeout=None)
         self.node_queue_list.append((node, notifier))
 
-
     def recv(self, timeout=None):
         #logger.debug("Waiting for new message")
         #logger.debug("Timeout is {}".format(timeout))
@@ -220,19 +214,17 @@ class Bus(BusABC):
             return None
 
         # TODO: Decide what to do with CAN errors
-        if None and m.is_error_frame:
-            logger.warning("Appears we got an error frame!")
+        # if m.is_error_frame:
+        #     logger.warning("Appears we got an error frame!")
+        #
+        #     rx_error = CANError(timestamp=m.timestamp)
+        #     if rx_error is not None:
+        #          logger.info('Sending error "%s" to registered listeners.' % rx_error)
+        #          for listener in self.listeners:
+        #              if hasattr(listener, 'on_error_received'):
+        #                  listener.on_error_received(rx_error)
 
-            rx_error = CANError(timestamp=m.timestamp)
-            if rx_error is not None:
-                 logger.info('Sending error "%s" to registered listeners.' % rx_error)
-                 for listener in self.listeners:
-                     if hasattr(listener, 'on_error_received'):
-                         listener.on_error_received(rx_error)
-
-
-
-    def send(self, msg):
+    def send(self, msg, timeout=None):
         logger.info("j1939.send: msg=%s" % msg)
         messages = []
         if len(msg.data) > 8:
@@ -332,7 +324,6 @@ class Bus(BusABC):
 
             logger.debug("j1939.send: calling can_bus_send: can-msg: %s" % can_message)
             self.can_bus.send(can_message)
-
 
     def shutdown(self):
         self.can_notifier.running.clear()
