@@ -90,7 +90,7 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
         rcvPdu = bus.recv(2)
         if rcvPdu:
             rcvPdu.display_radix='hex'
-            print("received PDU: %s", rcvPdu)
+            #print("received PDU: %s", rcvPdu)
             if rcvPdu.pgn == 0xd800:
                 if rcvPdu.data[0]==1 and rcvPdu.data[1]==0x11:
                     proceedCount += 1
