@@ -23,7 +23,7 @@ class ArbitrationID(object):
 
         """
         self.priority = priority
-        if pgn is None: 
+        if pgn is None:
             pgn = PGN()
 
         if pgn and (not isinstance(pgn, PGN)):
@@ -42,8 +42,6 @@ class ArbitrationID(object):
                                 logger.debug("self.destination_address_value = %x, pgn.pdu_specific = %x" %
                                         (self.destination_address_value, pgn.pdu_specific))
 
-                        print("self.destination_address_value = %x, pgn.pdu_specific = %x" %
-                                (self.destination_address_value, pgn.pdu_specific))
                         assert( self.destination_address_value == pgn.pdu_specific)
                     else:
                         raise ValueError("desttiantion address must be in range (0-255)")

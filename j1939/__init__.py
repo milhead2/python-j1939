@@ -387,7 +387,7 @@ class Bus(BusABC):
         elif arbitration_id.pgn.value == PGN_TP_DATA_TRANSFER:
             logger.info("PGN_TP_DATA_TRANSFER")
             retval = self._data_transfer_handler(pdu)
-        elif arbitration_id.pgn.value == PGN_TP_SEED_REQUEST:
+        elif (arbitration_id.pgn.value == PGN_TP_SEED_REQUEST) and (self._key_generation_fcn is not None):
             logger.info("PGN_TP_SEED_REQUEST")
             retval = self._send_key_response(pdu)
         else:
