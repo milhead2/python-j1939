@@ -22,15 +22,21 @@ class ArbitrationID(object):
             Between 0 and 255. Will trrow a ValueError if PGN does not allow a dest
 
         """
+        self.pgn = None
         self.priority = priority
-        if pgn is None:
-            pgn = PGN()
+        self.destination_address_value = None
 
-        if pgn and (not isinstance(pgn, PGN)):
-            ValueError("pgn must have PGN type")
+        if pgn is None:
+            self.pgn = PGN()
+        elif pgn and isinstance(pgn, int):
+            self.pgn = PGN.from_value(pgn)
+        elif pgn and isinstance(pgn, PGN):
+            self.pgn = pgn
+        else:
+            ValueError("pgn must have convertable type")
+
         self.pgn = pgn
 
-        self.destination_address_value = None
         if pgn:
             if self.pgn.is_destination_specific:
                 if destination_address is None:
@@ -50,10 +56,10 @@ class ArbitrationID(object):
 
     @property
     def can_id(self):
-        logger.debug("can_id property: self.pgn.is_destination_specific=%s" % self.pgn.is_destination_specific)
+        logger.debug("can_id property: self.pgn.is_destination_specific=%s\npgn=%s" % (self.pgn.is_destination_specific, self.pgn))
 
         if self.pgn.is_destination_specific:
-            logger.debug("can_id: self.pgn.is_destination_specific, dest=%x, pgn_value=%x, pdu_format=0x%x, pdu_specific=0x%x, pri=%x" %
+            logger.debug("can_id: self.pgn.is_destination_specific, dest=%s, pgn_value=%s, pdu_format=0x%x, pdu_specific=0x%x, pri=%s" %
                     (self.destination_address_value,
                     self.pgn.value,
                     self.pgn.pdu_format,
@@ -117,11 +123,18 @@ class ArbitrationID(object):
             self._pgn = other
 
     def __str__(self):
+
+
         logger.debug("arbitrationid.__str__: ids:%d, pri:%s, pgn:%s, dest:%s, src:%s" %
                 (self.pgn.is_destination_specific, self.priority, self.pgn, self.destination_address_value, self.source_address))
+
         if self.pgn.is_destination_specific:
-            retval = "PRI=%d PGN=%6s DST=0x%.2x SRC=0x%.2x" % (
-                self.priority, self.pgn, self.destination_address_value, self.source_address)
+            if self.destination_address_value is not None:
+                retval = "PRI=%d PGN=%6s DST=0x%.2x SRC=0x%.2x" % (
+                    self.priority, self.pgn, self.destination_address_value, self.source_address)
+            else:
+                retval = "PRI=%d PGN=%6s DST=NONE(error) SRC=0x%.2x" % (
+                    self.priority, self.pgn, self.source_address)
         else:
             retval = "PRI=%d PGN=%6s          SRC=0x%.2x" % (self.priority, self.pgn, self.source_address)
         return retval

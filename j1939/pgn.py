@@ -67,9 +67,16 @@ class PGN(object):
             retval += "R "
         else:
             retval += "  "
+
         if self.data_page_flag:
             retval += "P "
         else:
             retval += "  "
+
+        if 0:
+            if self.is_destination_specific:
+                retval += "DS "
+            else:
+                retval += "!DS"
 
         return retval

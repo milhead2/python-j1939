@@ -42,6 +42,7 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
 
     bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey)
 
+
     #dm14pgn = j1939.PGN()
     dm14data = [length, 0x15, pointer, 0x00, 0x00, extension, 0xff, 0xff]
 

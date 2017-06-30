@@ -68,8 +68,12 @@ class Node(Listener):
         claimed_address_pdu.arbitration_id.priority = 4
         claimed_address_pdu.arbitration_id.pgn.pdu_specific = 0xff
         claimed_address_pdu.arbitration_id.source_address = address
+        claimed_address_pdu.arbitration_id.destination_address_value = 0xff
+
         claimed_address_pdu.data = self.node_name.bytes
         self.known_node_addresses[self.node_name.value] = address
+        log.info('MIL:')
+        log.info('claimed_address_pdu: %s' % claimed_address_pdu)
         self.bus.send(claimed_address_pdu)
 
     def on_message_received(self, pdu):

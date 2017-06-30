@@ -316,7 +316,6 @@ class Bus(BusABC):
         else:
             msg.display_radix = 'hex'
             logger.debug("j1939.send: calling can_bus_send: j1939-msg: %s" % (msg))
-            logger.debug("j1939.send: calling can_bus_send: can_id %x" % (msg.arbitration_id.can_id))
             can_message = Message(arbitration_id=msg.arbitration_id.can_id,
                                   extended_id=True,
                                   dlc=len(msg.data),
@@ -369,7 +368,7 @@ class Bus(BusABC):
 
 
     def _process_incoming_message(self, msg):
-        logger.info("PI01: Processing incoming message: \n  msg=  %s" % (msg))
+        logger.info("PI01: Processing incoming message: instance=%s\n  msg=  %s" % (self, msg))
         arbitration_id = ArbitrationID()
         arbitration_id.can_id = msg.arbitration_id
         if arbitration_id.pgn.is_destination_specific:
@@ -398,7 +397,7 @@ class Bus(BusABC):
         return retval
 
     def _connection_management_handler(self, msg):
-        logger.debug("_connection_management_handler: %s" % (msg))
+        logger.debug("MP00: _connection_management_handler: %s, cmd=%s" % (msg, msg.data[0]))
         if len(msg.data) == 0:
             msg.info_strings.append("Invalid connection management message - no data bytes")
             return msg
@@ -543,6 +542,7 @@ class Bus(BusABC):
 
             #for _listener in self.can_notifier.listeners:
             for (_listener, l_notifier) in self.node_queue_list:
+                logger.debug("MIL2: _listner/l_notifier = %s/%s" % (_listener, l_notifier))
                 if isinstance(_listener, Node):
                     logger.debug("6, dest=0x%x" % (msg.arbitration_id.source_address))
                     # find a Node object so we can search its list of known node addresses
@@ -563,6 +563,31 @@ class Bus(BusABC):
                         logger.debug("send CTS: %s" % cts_msg)
                         self.can_bus.send(cts_msg)
                         return
+
+    """
+                    #
+                    # MIL: This is the wrong way around this, I should have a node assigned.
+                    #
+                    elif _listener is None and l_notifier is not None:
+                        logger.debug("7, dest=0x%x" % (msg.arbitration_id.source_address))
+                        # find a Node object so we can search its list of known node addresses
+                        # for this node - if we find it we are responsible for sending the CTS message
+                        if msg.arbitration_id.pgn.pdu_specific :
+                            _cts_arbitration_id = ArbitrationID(source_address=msg.arbitration_id.pgn.pdu_specific)
+                            _cts_arbitration_id.pgn.value = PGN_TP_CONNECTION_MANAGEMENT
+                            _cts_arbitration_id.pgn.pdu_specific = msg.arbitration_id.source_address
+                            _cts_arbitration_id.destination_address = msg.arbitration_id.source_address
+                            _data = [0x11, msg.data[4], 0x01, 0xFF, 0xFF]
+                            _data.extend(msg.data[5:])
+                            logger.debug("send CTS: AID: %s" % _cts_arbitration_id)
+                            cts_msg = Message(extended_id=True, arbitration_id=_cts_arbitration_id.can_id, data=_data,
+                                              dlc=8)
+
+                            # send clear to send
+                            logger.debug("send CTS: %s" % cts_msg)
+                            self.can_bus.send(cts_msg)
+                            return
+    """
 
     def _process_cts(self, msg):
         logger.debug("_process_cts")
