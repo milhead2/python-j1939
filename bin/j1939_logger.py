@@ -107,7 +107,6 @@ def parse_arguments():
 
 
 if __name__ == "__main__":
-
     args = parse_arguments()
 
     verbosity = args.verbosity
@@ -122,7 +121,6 @@ if __name__ == "__main__":
         for pgn in args.pgn:
             if pgn.startswith('0x'):
                 pgn = int(pgn[2:], base=16)
-
             filters.append({'pgn': int(pgn)})
     if args.source is not None:
         for src in args.source:
