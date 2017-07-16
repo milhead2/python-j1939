@@ -101,7 +101,7 @@ def parse_arguments():
         {}
 
     Alternatively the CAN_INTERFACE environment variable can be set.
-    '''.format(can.interfaces.interface.VALID_INTERFACES)))
+    '''.format(can.interfaces.VALID_INTERFACES)))
 
     return parser.parse_args()
 
@@ -112,8 +112,6 @@ if __name__ == "__main__":
     verbosity = args.verbosity
     logging_level_name = ['critical', 'error', 'warning', 'info', 'debug', 'subdebug'][min(5, verbosity)]
     can.set_logging_level(logging_level_name)
-
-    from can.interfaces.interface import *
 
     filters = []
     if args.pgn is not None:
