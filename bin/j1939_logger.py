@@ -136,6 +136,7 @@ if __name__ == "__main__":
     print("filters       : ", filters)
 
     bus = j1939.Bus(channel=args.channel, bustype=args.interface, j1939_filters=filters, timeout=0.1)
+    print("channel info  : ", bus.can_bus.channel_info)
     log_start_time = datetime.datetime.now()
     print('can.j1939 logger started on {}\n'.format(log_start_time))
     logger.info('can.j1939 logger started on {}\n'.format(log_start_time))
