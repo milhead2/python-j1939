@@ -5,7 +5,7 @@ python-j1939 requires the setuptools package to be installed.
 import logging
 from setuptools import setup, find_packages
 
-__version__ = "0.1.0-alpha.2"
+__version__ = "0.1.0-alpha.3"
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -24,7 +24,7 @@ setup(
         "doc": ["*.*"]
     },
 
-    install_requires=["python-can>=1.5"],
+    install_requires=["python-can>=2.0.0a2"],
 
     scripts=["./bin/j1939_logger.py"],
 

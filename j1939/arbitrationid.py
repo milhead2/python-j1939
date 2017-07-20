@@ -123,8 +123,6 @@ class ArbitrationID(object):
             self._pgn = other
 
     def __str__(self):
-
-
         logger.debug("arbitrationid.__str__: ids:%d, pri:%s, pgn:%s, dest:%s, src:%s" %
                 (self.pgn.is_destination_specific, self.priority, self.pgn, self.destination_address_value, self.source_address))
 

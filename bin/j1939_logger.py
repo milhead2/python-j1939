@@ -101,20 +101,17 @@ def parse_arguments():
         {}
 
     Alternatively the CAN_INTERFACE environment variable can be set.
-    '''.format(can.interfaces.interface.VALID_INTERFACES)))
+    '''.format(can.interfaces.VALID_INTERFACES)))
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-
     args = parse_arguments()
 
     verbosity = args.verbosity
     logging_level_name = ['critical', 'error', 'warning', 'info', 'debug', 'subdebug'][min(5, verbosity)]
     can.set_logging_level(logging_level_name)
-
-    from can.interfaces.interface import *
 
     filters = []
     if args.pgn is not None:
@@ -122,7 +119,6 @@ if __name__ == "__main__":
         for pgn in args.pgn:
             if pgn.startswith('0x'):
                 pgn = int(pgn[2:], base=16)
-
             filters.append({'pgn': int(pgn)})
     if args.source is not None:
         for src in args.source:
@@ -140,6 +136,7 @@ if __name__ == "__main__":
     print("filters       : ", filters)
 
     bus = j1939.Bus(channel=args.channel, bustype=args.interface, j1939_filters=filters, timeout=0.1)
+    print("channel info  : ", bus.can_bus.channel_info)
     log_start_time = datetime.datetime.now()
     print('can.j1939 logger started on {}\n'.format(log_start_time))
     logger.info('can.j1939 logger started on {}\n'.format(log_start_time))

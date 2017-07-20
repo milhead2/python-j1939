@@ -21,14 +21,10 @@ import copy
 
 # By this stage the can.rc should have been set up
 from can import Message
-
 from can import set_logging_level as can_set_logging_level
-from can.interfaces.interface import Bus as RawCanBus
-
+from can.interface import Bus as RawCanBus
 from can.notifier import Notifier as canNotifier
 from can.bus import BusABC
-
-
 
 # Import our new message type
 from j1939.pdu import PDU
@@ -83,7 +79,6 @@ class Bus(BusABC):
         self._key_generation_fcn = None
         if 'keygen' in kwargs and kwargs['keygen'] is not None:
             self._key_generation_fcn = kwargs['keygen']
-
 
         if broadcast:
             self.node_queue_list = [(None,  self)]  # Start with default logger Queue which will receive everything
@@ -163,29 +158,24 @@ class Bus(BusABC):
                         l_notifier.queue.put(inboundMessage)
 
                     # if node has the destination address, do something with the PDU
-                    #
                     elif node and (arbitration_id.destination_address in node.address_list):
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         if rx_pdu:
                             logger.info("WP02: notification: sent to general queue: %s QQ=%s" % (rx_pdu, self.queue))
                             self.queue.put(rx_pdu)
-
                     elif node and (arbitration_id.destination_address is None):
                         logger.info("notification: sending broadcast to general queue")
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         logger.info("WP01: notification: sent broadcast to general queue: %s QQ=%s" % (rx_pdu, self.queue))
                         self.queue.put(rx_pdu)
-
                     elif node is None:
                         # always send the message to the logging queue
                         logger.info("notification: sending to general queue")
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         logger.info("WP03: notification: sent 'none' to general queue")
                         self.queue.put(rx_pdu)
-
                     else:
                         logger.info("WP04: notification: pdu dropped: %s\n\n" % inboundMessage)
-
             else:
                 logger.info("Received non J1939 message (ignoring)")
 
@@ -365,8 +355,6 @@ class Bus(BusABC):
 
         return None
 
-
-
     def _process_incoming_message(self, msg):
         logger.info("PI01: Processing incoming message: instance=%s\n  msg=  %s" % (self, msg))
         arbitration_id = ArbitrationID()
@@ -443,7 +431,7 @@ class Bus(BusABC):
 
                     # Find a Node object so we can search its list of known node addresses for this node
                     # so we can find if we are responsible for sending the EOM ACK message
-					# TODO: Was self.j1939_notifier.listeners
+                    # TODO: Was self.j1939_notifier.listeners
 
                     send_ack = any(True for (_listener, l_notifier) in self.node_queue_list
                             if isinstance(_listener, Node) and
