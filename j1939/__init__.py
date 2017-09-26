@@ -20,6 +20,7 @@ except ImportError:
 import copy
 
 # By this stage the can.rc should have been set up
+from can import CanError
 from can import Message
 from can import set_logging_level as can_set_logging_level
 from can.interface import Bus as RawCanBus
@@ -77,8 +78,12 @@ class Bus(BusABC):
         self._incomplete_transmitted_pdus = {}
         self._long_message_segment_queue = Queue(0)
         self._key_generation_fcn = None
+
         if 'keygen' in kwargs and kwargs['keygen'] is not None:
             self._key_generation_fcn = kwargs['keygen']
+
+        if 'ignoreCanSendError' in kwargs and kwargs['ignoreCanSendError'] is not None:
+            self._ignore_can_send_error = kwargs['ignoreCanSendError']
 
         if broadcast:
             self.node_queue_list = [(None,  self)]  # Start with default logger Queue which will receive everything
@@ -283,7 +288,12 @@ class Bus(BusABC):
                                         pgn_middle,
                                         pgn_msb],
                                   dlc=8)
-                self.can_bus.send(rts_msg)
+                try:
+                    self.can_bus.send(rts_msg)
+                except CanError:
+                    if self._ignore_can_send_error:
+                        pass
+                    raise
             else:
                 rts_arbitration_id.pgn.pdu_specific = DESTINATION_ADDRESS_GLOBAL
                 bam_msg = Message(extended_id=True,
@@ -297,7 +307,12 @@ class Bus(BusABC):
                                         pgn_msb],
                                   dlc=8)
                 # send BAM
-                self.can_bus.send(bam_msg)
+                try:
+                    self.can_bus.send(bam_msg)
+                except CanError:
+                    if self._ignore_can_send_error:
+                        pass
+                    raise
 
                 for message in messages:
                     # send data messages - no flow control, so no need to wait
@@ -312,7 +327,12 @@ class Bus(BusABC):
                                   data=msg.data)
 
             logger.debug("j1939.send: calling can_bus_send: can-msg: %s" % can_message)
-            self.can_bus.send(can_message)
+            try:
+                self.can_bus.send(can_message)
+            except CanError:
+                if self._ignore_can_send_error:
+                    pass
+                raise
 
     def shutdown(self):
         self.can_notifier.running.clear()
@@ -470,7 +490,12 @@ class Bus(BusABC):
                                                     _pgn_lsb,
                                                     _pgn_middle,
                                                     pgn_msb])
-                        self.can_bus.send(can_message)
+                        try:
+                            self.can_bus.send(can_message)
+                        except CanError:
+                            if self._ignore_can_send_error:
+                                pass
+                            raise
 
                     logger.debug("_data_transfer_handler: returning %s" % (msg))
                     return self._process_eom_ack(msg)
@@ -549,7 +574,12 @@ class Bus(BusABC):
 
                         # send clear to send
                         logger.debug("send CTS: %s" % cts_msg)
-                        self.can_bus.send(cts_msg)
+                        try:
+                            self.can_bus.send(cts_msg)
+                        except CanError:
+                            if self._ignore_can_send_error:
+                                pass
+                            raise
                         return
 
     """
@@ -588,7 +618,12 @@ class Bus(BusABC):
                 end_index = start_index + msg.data[1]
                 for _msg in self._incomplete_transmitted_pdus[msg.arbitration_id.pgn.pdu_specific][
                         msg.arbitration_id.source_address][start_index:end_index]:
-                    self.can_bus.send(_msg)
+                    try:
+                        self.can_bus.send(msg)
+                    except CanError:
+                        if self._ignore_can_send_error:
+                            pass
+                        raise
 
     def _process_eom_ack(self, msg):
         logger.debug("_process_eom_ack")
@@ -649,7 +684,12 @@ class Bus(BusABC):
             except Empty:
                 pass
             if _msg is not None:
-                self.can_bus.send(_msg)
+                try:
+                    self.can_bus.send(msg)
+                except CanError:
+                    if self._ignore_can_send_error:
+                        pass
+                    raise
 
     @property
     def transmissions_in_progress(self):
