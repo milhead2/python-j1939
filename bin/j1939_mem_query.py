@@ -78,29 +78,27 @@ if __name__ == "__main__":
 
     # queries a couple objects but setting up the full stack and bus for
     # each takes a long time.
-    start = timeit.default_timer()
-    for p, e in [(0x15, 0xe9), (0x00, 0xf1), (0x50, 0xe9), (0x75, 0xe9)]:
-        val = get_mem_object_single(length=4, src=0, dest=0x17, pointer=p, extension=e)
-        print("0x%02x-0x%02x = %d" % (p, e, val))
-    print("elapsed = %s s" % (timeit.default_timer() - start))
-
-
-    # queries the same objects but in a single bus instance, should be a tad faster.
-    start = timeit.default_timer()
-    try:
-        jbus = j1939.Bus(channel='can0', bustype='socketcan', timeout=0.01)
+    if 1:
+        start = timeit.default_timer()
         for p, e in [(0x15, 0xe9), (0x00, 0xf1), (0x50, 0xe9), (0x75, 0xe9)]:
-            val = get_mem_object(jbus, length=4, src=0, dest=0x17, pointer=p, extension=e)
+            val = get_mem_object_single(length=4, src=0, dest=0x17, pointer=p, extension=e)
             print("0x%02x-0x%02x = %d" % (p, e, val))
-    except:
-        traceback.print_exc()
-
-        pass
-    jbus.shutdown()
-    print("elapsed = %s s" % (timeit.default_timer() - start))
+        print("elapsed = %s s" % (timeit.default_timer() - start))
 
 
-    # just a blurb to see
-    start = timeit.default_timer()
-    time.sleep(1)
-    print("elapsed = %s s" % (timeit.default_timer() - start))
+    if 1:
+        # queries the same objects but in a single bus instance, should be a tad faster.
+        start = timeit.default_timer()
+        try:
+            jbus = j1939.Bus(channel='can0', bustype='socketcan', timeout=0.01)
+            for p, e in [(0x15, 0xe9), (0x00, 0xf1), (0x50, 0xe9), (0x75, 0xe9)]:
+                val = get_mem_object(jbus, length=4, src=0, dest=0x17, pointer=p, extension=e)
+                print("0x%02x-0x%02x = %d" % (p, e, val))
+        except:
+            traceback.print_exc()
+            pass
+
+        jbus.shutdown()
+
+        print("elapsed = %s s" % (timeit.default_timer() - start))
+

@@ -25,6 +25,7 @@ from can import Message
 from can import set_logging_level as can_set_logging_level
 from can.interface import Bus as RawCanBus
 from can.notifier import Notifier as canNotifier
+from can.listener import Listener as canListener
 from can.bus import BusABC
 
 # Import our new message type
@@ -42,6 +43,17 @@ logger.setLevel(logging.WARNING)
 
 can_set_logging_level('warning')
 
+class j1939Listner(canListener):
+
+    def __init__(self, handler):
+        self.handler = handler
+
+    def on_message_received(self, msg):
+        self.handler(msg)
+
+    def stop(self):
+        pass
+            
 
 class Bus(BusABC):
     """
@@ -124,10 +136,12 @@ class Bus(BusABC):
 
         logger.debug("Creating a new can bus")
         self.can_bus = RawCanBus(*args, **kwargs)
-        self.can_notifier = canNotifier(self.can_bus, [self.notification], timeout=self.timeout)
-        ###########self.j1939_notifier = Notifier(self, [])
+
+        canListener = j1939Listner(self.notification)
+        self.can_notifier = canNotifier(self.can_bus, [canListener], timeout=self.timeout)
 
         self._long_message_throttler.start()
+
 
     def notification(self, inboundMessage):
         #self.rx_can_message_queue.put(inboundMessage)
@@ -204,6 +218,7 @@ class Bus(BusABC):
             rx_pdu = self.queue.get(timeout=timeout)
             logger.info('J1939 Bus recv() successful QQ=%s, pdu:%s' % (self.queue, rx_pdu))
             return rx_pdu
+
         except Empty:
             logger.debug('J1939 Bus recv() timed out' % ())
             return None
@@ -560,6 +575,10 @@ class Bus(BusABC):
                     logger.debug("6, dest=0x%x" % (msg.arbitration_id.source_address))
                     # find a Node object so we can search its list of known node addresses
                     # for this node - if we find it we are responsible for sending the CTS message
+                    logger.debug("MIL3: Node: %s" % (Node))
+                    logger.debug("MIL3: _listener.address: %s" % (_listener.address))
+                    logger.debug("MIL3: msg.arbitration_id.pgn.pdu_specific: %s" % (msg.arbitration_id.pgn.pdu_specific))
+                    logger.debug("MIL3: _listener.address_list: %s" % (_listener.address_list))
                     if _listener.address == msg.arbitration_id.pgn.pdu_specific or \
                             msg.arbitration_id.pgn.pdu_specific in _listener.address_list:
                         _cts_arbitration_id = ArbitrationID(source_address=msg.arbitration_id.pgn.pdu_specific)
