@@ -1,85 +1,110 @@
+#!/usr/bin/python
+#
 from __future__ import print_function
+
+_name = ""
+__version__ = "1.0.0"
+__date__ = "12/21/2017"
+__exp__ = "(expirimental)"  # (Release Version)
+title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
 import j1939
 
-import logging
 
-lLevel = logging.DEBUG
-
-logger = logging.getLogger()
-logger.setLevel(lLevel)
-ch = logging.StreamHandler()
-fh = logging.FileHandler('/tmp/j1939_request_pgn.log')
-fh.setLevel(lLevel)
-ch.setLevel(lLevel)
-formatter = logging.Formatter('%(asctime)s | %(name)20s | %(threadName)20s | %(levelname)5s | %(message)s')
-chformatter = logging.Formatter('%(name)25s | %(threadName)10s | %(levelname)5s | %(message)s')
-fh.setFormatter(formatter)
-ch.setFormatter(chformatter)
-logger.addHandler(ch)
-logger.addHandler(fh)
-
-
-
-
-if __name__ == "__main__":
-    import traceback
-    import timeit
-    import time
-
-
-def request_pgn(channel='can0', bustype='socketcan', src=0, dest=0x17, reqPGN=0x00feda):
-    #from can.interfaces.interface import *
+def request_pgn_single(requested_pgn, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17):
 
     countdown = 10
-    result = -1
+    result = None
+
+    if not isinstance(requested_pgn, int):
+        raise ValueError("pgn must be an integer.")
 
     bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01)
-
-    nodename = j1939.NodeName(0)
-    nodename.arbitrary_address_capable = 1
-
-    node1 = j1939.Node(bus, j1939.NodeName(0), [0])
-    bus.connect(node1)
-
-
     pgn = j1939.PGN()
-    pgn.value = 0xea00 | dest
+    pgn.value = 0xea00 + dest # request_pgn mem-object
     aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)
 
-    data = [((reqPGN>>0)&0xff), ((reqPGN>>8)&0xff), ((reqPGN>>16)&0xff)]
+    pgn0 = requested_pgn & 0xff
+    pgn1 = (requested_pgn >> 8) & 0xff
+    pgn2 = (requested_pgn >> 16) & 0xff
+
+    data = [pgn0, pgn1, pgn2]
     pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
+
     pdu.display_radix='hex'
 
     bus.send(pdu)
 
     while countdown:
-        pdu = bus.recv()
-        if pdu and pdu.pgn == reqPGN:
-            return pdu;
+        pdu = bus.recv(timeout=1)
+        if pdu and (pdu.pgn == 0xe800 or pdu.pgn == requested_pgn):
+            result = list(pdu.data) 
             break # got what I was waiting for
 
-        countdown -= 1
+        if pdu: 
+            countdown -= 1
 
     bus.shutdown()
 
-    return None
+    if  not result:
+        raise IOError(" no CAN response")
+
+
+    return result
+
 
 if __name__ == "__main__":
 
-    # queries a couple objects but setting up the full stack and bus for
-    # each takes a long time.
-    start = timeit.default_timer()
-    if request_pgn(src=0, dest=0x27):
-        print("Returned Success!")
-    else:
-        print("Returned None!")
+    import traceback
+    import timeit
+    import time
+    import argparse
+    import logging
+    import textwrap
 
-    print("elapsed = %s s" % (timeit.default_timer() - start))
+    def getStringValAsInt(s):
+        if s.startswith("0x"):
+            return int(s[2:],base=16)
+        else:
+            return int(s, base=10)
 
 
 
-    # just a blurb to see
-    start = timeit.default_timer()
-    time.sleep(1)
-    print("elapsed = %s s" % (timeit.default_timer() - start))
+
+    lLevel = logging.DEBUG
+    jlogger = logging.getLogger("j1939")
+    ch = logging.StreamHandler()
+    ch.setLevel(lLevel)
+    jlogger.addHandler(ch)
+
+    parser = argparse.ArgumentParser(description='''\
+           example: %(prog)s -d 0x21 65223
+           
+                    will request a specific PGN 65223 from dest '''
+                                     ,epilog=title)
+
+    parser.add_argument("-s", "--src",
+                        default="0",
+                        help="j1939 source address decimal or hex, default is 0")
+
+    parser.add_argument("-d", "--dest",
+                      default="0x17",
+                      help="CAN destination, default is 0x17")
+
+    parser.add_argument("pgn",
+                      default=None,
+                      help="pgn to request in decimal or 0xHex")
+
+    args = parser.parse_args()
+
+
+    source = getStringValAsInt(args.src)
+    dest = getStringValAsInt(args.dest)
+    pgn = getStringValAsInt(args.pgn)
+
+    print ("request_pgn_single(pgn=0x%04x (%d), src=0x%02x, dest=0x%02x)" % (pgn, pgn, source, dest))
+
+    val = request_pgn_single(pgn, length=4, src=source, dest=dest)
+
+    print("returned PGN = %s" % val)
+

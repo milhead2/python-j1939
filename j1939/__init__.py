@@ -38,7 +38,7 @@ from j1939.nodename import NodeName
 from j1939.arbitrationid import ArbitrationID
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("j1939")
 logger.setLevel(logging.WARNING)
 
 can_set_logging_level('warning')
@@ -191,7 +191,7 @@ class Bus(BusABC):
                         # always send the message to the logging queue
                         logger.info("notification: sending to general queue")
                         rx_pdu = self._process_incoming_message(inboundMessage)
-                        logger.info("WP03: notification: sent 'none' to general queue")
+                        logger.info("WP03: notification: sent pdu [%s] to general queue" % rx_pdu)
                         self.queue.put(rx_pdu)
                     else:
                         logger.info("WP04: notification: pdu dropped: %s\n\n" % inboundMessage)
