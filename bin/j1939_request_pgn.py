@@ -69,13 +69,10 @@ if __name__ == "__main__":
             return int(s, base=10)
 
 
-
-
-    lLevel = logging.DEBUG
-    jlogger = logging.getLogger("j1939")
+    logger = logging.getLogger("j1939")
     ch = logging.StreamHandler()
-    ch.setLevel(lLevel)
-    jlogger.addHandler(ch)
+    ch.setLevel(logging.WARNING)
+    logger.addHandler(ch)
 
     parser = argparse.ArgumentParser(description='''\
            example: %(prog)s -d 0x21 65223
