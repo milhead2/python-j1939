@@ -33,13 +33,14 @@ def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
 
     data = [length, 0x13, pointer, 0x00, 0x00, extension, 0xff, 0xff]
     pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
+    assert(pdu != None)
     pdu.display_radix='hex'
 
     bus.send(pdu)
 
     while countdown:
         pdu = bus.recv(timeout=1)
-        if pdu.pgn == 0xd700:
+        if pdu and pdu.pgn == 0xd700:
             value = list(pdu.data)
             length = value[0]
             if length == 1:
@@ -104,14 +105,14 @@ def getStringVal(s):
 
 if __name__ == "__main__":
 
-    lLevel = logging.WARNING
+    lLevel = logging.WARN
     jlogger = logging.getLogger("j1939")
+    jlogger.setLevel(lLevel)
     ch = logging.StreamHandler()
-    ch.setLevel(lLevel)
     jlogger.addHandler(ch)
 
     parser = argparse.ArgumentParser(description='''\
-           example: %(prog)s -d 0x21 -e 0xe9 -p 0x15
+           example: %(prog)s -d 0x21 0xe9 -p 0x15
            
                     will query a E9_15 Memory value '''
                                      ,epilog=title)
@@ -128,13 +129,15 @@ if __name__ == "__main__":
                       default="0x17",
                       help="CAN destination, default is 0x17")
 
-    parser.add_argument("-p", "--pointer",
-                      default=None,
-                      help="mem object offset within the exension block (REQUIRED)")
+    parser.add_argument("extension",
+                  default=None,
+                  help="Memory object extension prefix to request in decimal or 0xHex")
 
-    parser.add_argument("-e", "--extension",
-                      default=None,
-                      help="mem object offset within the exension block (REQUIRED)")
+    parser.add_argument("pointer",
+                  default=None,
+                  help="Memory object pointer offset to request in decimal or 0xHex")
+
+
 
     args = parser.parse_args()
 

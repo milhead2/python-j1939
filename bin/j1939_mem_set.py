@@ -117,9 +117,18 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--length", default="1", help="number of bytes in the object (1-4) default=1")
     parser.add_argument("-s", "--source", default="0", help="source address (0-254) default=0")
     parser.add_argument("-d", "--destination", default="0x17", help="destination address (0-254) default=17")
-    parser.add_argument("-p", "--pointer", default="0x58", help="j1939 pointer (0-0xffffff) default=0x58")
-    parser.add_argument("-e", "--extension", default="0xe9", help="j1939 pointer extension (0-0xffffff) default=0x58")
+
+    parser.add_argument("extension",
+                  default=None,
+                  help="Memory object extension prefix to request in decimal or 0xHex")
+
+    parser.add_argument("pointer",
+                  default=None,
+                  help="Memory object pointer offset to request in decimal or 0xHex")
+
+
     parser.add_argument('value')
+
     args = parser.parse_args()
 
     length = int(args.length,0)
