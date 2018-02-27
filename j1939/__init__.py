@@ -11,6 +11,7 @@ http://en.wikipedia.org/wiki/J1939
 import threading
 import logging
 import pprint
+import time
 
 try:
     from queue import Queue, Empty
@@ -244,40 +245,66 @@ class Bus(BusABC):
             pdu = copy.deepcopy(msg)
             pdu.data = bytearray(pdu.data)
 
+            logger.info("j1939.send: Copied msg = %s" % pdu)
             pdu_length_lsb, pdu_length_msb = divmod(len(pdu.data), 256)
 
             while len(pdu.data) % 7 != 0:
                 pdu.data += b'\xFF'
 
+
+            # 
+            # segment the longer message into 7 byte segments.  We need to prefix each 
+            # data[0] with a sequence number for the transfer
+            #
             for i, segment in enumerate(pdu.data_segments(segment_length=7)):
                 arbitration_id = copy.deepcopy(pdu.arbitration_id)
                 arbitration_id.pgn.value = PGN_TP_DATA_TRANSFER
+
+                logger.info("j1939.send: i=%d, pdu.arbitration_id.pgn.is_destination_specific=%d, data=%s" % 
+                            (i,pdu.arbitration_id.pgn.is_destination_specific, segment))
+
                 if pdu.arbitration_id.pgn.is_destination_specific and \
                    pdu.arbitration_id.destination_address != DESTINATION_ADDRESS_GLOBAL:
+
                     arbitration_id.pgn.pdu_specific = pdu.arbitration_id.pgn.pdu_specific
                 else:
                     arbitration_id.pgn.pdu_specific = DESTINATION_ADDRESS_GLOBAL
+                    arbitration_id.destination_address = DESTINATION_ADDRESS_GLOBAL
 
+                logger.info("j1939.send: segment=%d, arb = %s" % (i, arbitration_id))
                 message = Message(arbitration_id=arbitration_id.can_id,
                                   extended_id=True,
                                   dlc=(len(segment) + 1),
                                   data=(bytearray([i + 1]) + segment))
                 messages.append(message)
 
+            #
+            # At this point we have the queued messages sequenced in 'messages'
+            #
+            logger.info("j1939.send: is_destination_specific=%d, destAddr=%s" % 
+                            (pdu.arbitration_id.pgn.is_destination_specific, 
+                             pdu.arbitration_id.destination_address))
+            logger.info("j1939.send: messages=%s" % messages)
+           
             if pdu.arbitration_id.pgn.is_destination_specific and \
                pdu.arbitration_id.destination_address != DESTINATION_ADDRESS_GLOBAL:
+
                 destination_address = pdu.arbitration_id.pgn.pdu_specific
+
                 if pdu.arbitration_id.source_address in self._incomplete_transmitted_pdus:
                     if destination_address in self._incomplete_transmitted_pdus[pdu.arbitration_id.source_address]:
                         logger.warning("Duplicate transmission of PDU:\n{}".format(pdu))
                 else:
                     self._incomplete_transmitted_pdus[pdu.arbitration_id.source_address] = {}
+
+                # append the messages to the 'incomplete' list
                 self._incomplete_transmitted_pdus[pdu.arbitration_id.source_address][destination_address] = messages
+
             else:
                 destination_address = DESTINATION_ADDRESS_GLOBAL
 
-            logger.warning("rts arbitration id: src=%s, dest=%s" % (pdu.source, pdu.arbitration_id.destination_address))
-            rts_arbitration_id = ArbitrationID(source_address=pdu.source, destination_address=pdu.arbitration_id.destination_address)
+            logger.warning("rts arbitration id: src=%s, dest=%s" % (pdu.source, destination_address))
+            rts_arbitration_id = ArbitrationID(source_address=pdu.source, destination_address=destination_address)
             rts_arbitration_id.pgn.value = PGN_TP_CONNECTION_MANAGEMENT
             rts_arbitration_id.pgn.pdu_specific = pdu.arbitration_id.pgn.pdu_specific
 
@@ -304,6 +331,7 @@ class Bus(BusABC):
                                         pgn_msb],
                                   dlc=8)
                 try:
+                    logger.info("j1939.send: sending TP.CTS to %s: %s" % (destination_address, rts_msg))
                     self.can_bus.send(rts_msg)
                 except CanError:
                     if self._ignore_can_send_error:
@@ -311,6 +339,7 @@ class Bus(BusABC):
                     raise
             else:
                 rts_arbitration_id.pgn.pdu_specific = DESTINATION_ADDRESS_GLOBAL
+                rts_arbitration_id.destination_address = DESTINATION_ADDRESS_GLOBAL
                 bam_msg = Message(extended_id=True,
                                   arbitration_id=rts_arbitration_id.can_id,
                                   data=[CM_MSG_TYPE_BAM,
@@ -321,9 +350,13 @@ class Bus(BusABC):
                                         pgn_middle,
                                         pgn_msb],
                                   dlc=8)
+                bam_msg.destination_address = DESTINATION_ADDRESS_GLOBAL
+                # bam_msg.arbitration_id.destination_address = DESTINATION_ADDRESS_GLOBAL
                 # send BAM
                 try:
+                    logger.info("j1939.send: sending TP.BAM to %s: %s" % (destination_address, bam_msg))
                     self.can_bus.send(bam_msg)
+                    time.sleep(0.05)
                 except CanError:
                     if self._ignore_can_send_error:
                         pass
@@ -332,6 +365,7 @@ class Bus(BusABC):
                 for message in messages:
                     # send data messages - no flow control, so no need to wait
                     # for receiving devices to acknowledge
+                    logger.info("j1939.send: queue TP.BAM data to %s: %s" % (destination_address, message))
                     self._long_message_segment_queue.put_nowait(message)
         else:
             msg.display_radix = 'hex'
@@ -704,7 +738,8 @@ class Bus(BusABC):
                 pass
             if _msg is not None:
                 try:
-                    self.can_bus.send(msg)
+                    self.can_bus.send(_msg)
+                    time.sleep(0.05)
                 except CanError:
                     if self._ignore_can_send_error:
                         pass

@@ -2,9 +2,9 @@ from __future__ import print_function
 
 
 _name = "J1939 Memory-Object Writer"
-__version__ = "1.0.0"
-__date__ = "06/22/2017"
-__exp__ = "(sabot)"  # (Release Version)
+__version__ = "1.0.1"
+__date__ = "02/27/2018"
+__exp__ = "()"  # (Release Version)
 title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
 
@@ -15,14 +15,14 @@ import j1939
 # for responding to seed/key requests provide your own keyGenerator
 # class..
 # mine is returned in a SeedToKey meghod of a Genkey class that sits elsewhere
-# on my PYTHONPATH
+# on my PYTHONPATH and is propriatiry
 #
 # TODO: use a better baseclass override model.
 #
 try:
     import genkey
     security = genkey.GenKey()
-    print("Genkey Loaded")
+    print("Private Genkey Loaded")
 except:
     # Stuff in a fake genKey responder.  Pretty much just needs a
     # reference to any class that can convert a Seed to a Key..  For
@@ -59,22 +59,31 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
     bus.send(dm14pdu)
 
     sendBuffer = [length, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
-    if length == 1:
-        sendBuffer[1] = value;
-    elif length == 2:
-        sendBuffer[1] = value & 0xff
-        sendBuffer[2] = (value >> 8) & 0xff
-    elif length == 3:
-        sendBuffer[1] = value & 0xff
-        sendBuffer[2] = (value >> 8) & 0xff
-        sendBuffer[3] = (value >> 16) & 0xff
-    elif length == 4:
-        sendBuffer[1] = value & 0xff
-        sendBuffer[2] = (value >> 8) & 0xff
-        sendBuffer[3] = (value >> 16) & 0xff
-        sendBuffer[4] = (value >> 24) & 0xff
-    else:
-        raise ValueError("Don't know how to send a %d byte object" % length)
+    if isinstance(value, int):
+        if length == 1:
+            sendBuffer[1] = value;
+        elif length == 2:
+            sendBuffer[1] = value & 0xff
+            sendBuffer[2] = (value >> 8) & 0xff
+        elif length == 3:
+            sendBuffer[1] = value & 0xff
+            sendBuffer[2] = (value >> 8) & 0xff
+            sendBuffer[3] = (value >> 16) & 0xff
+        elif length == 4:
+            sendBuffer[1] = value & 0xff
+            sendBuffer[2] = (value >> 8) & 0xff
+            sendBuffer[3] = (value >> 16) & 0xff
+            sendBuffer[4] = (value >> 24) & 0xff
+        else:
+            raise ValueError("Don't know how to send a %d byte integer" % length)
+
+    elif isinstance(value, list):
+        for i in range(1,len(value)+1):
+            sendBuffer[i] = value[i-1]
+
+
+
+
 
     dm16pgn = j1939.PGN(pdu_format=0xd7, pdu_specific=dest)
     dm16aid = j1939.ArbitrationID(pgn=dm16pgn, source_address=src, destination_address=dest)
@@ -98,7 +107,7 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
                     if proceedCount == 2:
                         bus.send(dm16pdu)
                 if rcvPdu.data[0]==0 and rcvPdu.data[1]==0x19:
-                    print("Value Sent")
+                    #print("Value Sent")
                     break;
 
 
@@ -109,10 +118,26 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
 
 if __name__ == "__main__":
 
+    examples = """
+examples:
+    # write the characters 'ERASE' to extension E9 ponter ED
+    $ python j1939_mem_set.py -d 0x17 0xe9 0xed ERASE
+
+    # Illuminate 'N' Telltale, write a byte (1) to extension EA pointer 6B
+    $ python j1939_mem_set.py -d 0x17 0xea 0x6b 1
+
+    # extinguish 'N' Telltale, 
+    $ python j1939_mem_set.py -d 0x17 0xea 0x6b 0
+
+    # Set B1/C4 Odometer to 200km (200=1km)
+    $ python j1939_mem_set.py --destination=0x17 --length=4 0xf1 0x00 20000
+
+"""
+
     import timeit
     import argparse
 
-    parser = argparse.ArgumentParser(description=title)
+    parser = argparse.ArgumentParser(description=title, formatter_class=argparse.RawDescriptionHelpFormatter, epilog=examples)
 
     parser.add_argument("-l", "--length", default="1", help="number of bytes in the object (1-4) default=1")
     parser.add_argument("-s", "--source", default="0", help="source address (0-254) default=0")
@@ -120,14 +145,16 @@ if __name__ == "__main__":
 
     parser.add_argument("extension",
                   default=None,
-                  help="Memory object extension prefix to request in decimal or 0xHex")
+                  help="Memory object extension prefix to request in decimal or 0xhex")
 
     parser.add_argument("pointer",
                   default=None,
-                  help="Memory object pointer offset to request in decimal or 0xHex")
+                  help="Memory object pointer offset to request in decimal or 0xhex")
 
 
-    parser.add_argument('value')
+    parser.add_argument('value',
+                  default=None,
+                  help="numeric or string value, if not a single byte, be sure to specify length.")
 
     args = parser.parse_args()
 
@@ -136,9 +163,19 @@ if __name__ == "__main__":
     dest = int(args.destination,0)
     ext = int(args.extension,0)
     ptr = int(args.pointer,0)
-    value = int(args.value,0)
 
-    print("Attepting to set %2X/%02X to %d" % (ext, ptr, value))
+    # 
+    # Try first to pull out a numeric argument, otherwise set it as a string.
+    # 
+    try:
+        value = int(args.value,0)
+    except ValueError:
+        strValue = [ord(c) for c in args.value]
+        value = strValue
+        length = len(strValue)
+
+
+    print("Attepting to set %2X/%02X to %s" % (ext, ptr, value))
     #value = hex(int(args.value,0))
 
     # queries a couple objects but setting up the full stack and bus for
