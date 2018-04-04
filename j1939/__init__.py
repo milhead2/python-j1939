@@ -384,7 +384,7 @@ class Bus(BusABC):
                 raise
 
     def shutdown(self):
-        self.can_notifier.running.clear()
+        self.can_notifier._running.clear()
         self.can_bus.shutdown()
         #self.j1939_notifier.running.clear()
         super(Bus, self).shutdown()
@@ -730,7 +730,7 @@ class Bus(BusABC):
                     msg.arbitration_id.source_address]
 
     def _throttler_function(self):
-        while self.can_notifier.running.is_set():
+        while self.can_notifier._running.is_set():
             _msg = None
             try:
                 _msg = self._long_message_segment_queue.get(timeout=0.1)

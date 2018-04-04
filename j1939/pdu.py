@@ -111,6 +111,7 @@ class PDU(object):
             for element in value:
                 if isinstance(element, str):
                     element = int(element)
+                #logger.warn("!!! element=%s type(element)=%s" % (element, type(element)))
                 assert element >= 0, 'Data values must be between 0 and 255, element={}'.format(element)
                 assert element <= 255, 'Data values must be between 0 and 255'
         return value
