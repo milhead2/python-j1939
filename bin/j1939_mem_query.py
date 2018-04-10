@@ -55,7 +55,7 @@ def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
 
     bus.shutdown()
 
-    if  not result:
+    if (result == None):
         raise IOError(" no CAN response")
 
 
@@ -90,7 +90,7 @@ def get_mem_object(bus=None, length=4, src=0, dest=0x17, pointer=0, extension=0)
 
         countdown -= 1
 
-    if  not result:
+    if (result == None):
         raise IOError(" no CAN response")
 
     return result
