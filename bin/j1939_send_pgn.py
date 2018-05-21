@@ -82,7 +82,11 @@ if __name__ == "__main__":
         if s.startswith("0x"):
             return int(s[2:],base=16)
         else:
-            return int(s, base=10)
+            temp = int(s, base=10)
+            # 4 bit numbers need to not have a preceding 0
+            if temp < 0xf0:
+                temp = temp << 8
+            return temp
 
 
     logger = logging.getLogger("j1939")
@@ -134,8 +138,6 @@ if __name__ == "__main__":
         print("Unable to send {} buffer of size: {}".format(data, len(data)))
         exit()
     
-    while len(data) > 8:
-        data.append(0xff)
     
     print ("Sending PGN: (pgn=0x%04x (%d), src=0x%02x, dest=0x%02x)" % (pgn, pgn, source, dest))
 
