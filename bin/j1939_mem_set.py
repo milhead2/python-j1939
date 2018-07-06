@@ -58,7 +58,14 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
 
     bus.send(dm14pdu)
 
-    sendBuffer = [length, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+    sendBuffer = []
+    sendBuffer.append(length)
+    for i in range(0, length):
+        sendBuffer.append(0xff)
+
+    #sendBuffer = [length, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+
+    print("## length=%d, value=%s " % (length, value))
     if isinstance(value, int):
         if length == 1:
             sendBuffer[1] = value
@@ -81,6 +88,14 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
         for i in range(1,len(value)+1):
             sendBuffer[i] = value[i-1]
 
+    elif isinstance(value, str):
+        for i in range(1,len(value)+1):
+            sendBuffer[i] = ord(value[i-1])
+
+    print("## sendBuffer=%s " % (sendBuffer))
+
+
+
 
 
 
@@ -90,6 +105,7 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
     dm16pdu = j1939.PDU(timestamp=0.0, arbitration_id=dm16aid, data=sendBuffer)
     dm16pdu.display_radix='hex'
 
+    print("## PDU=%s " % (dm16pdu))
 
     # Wait around for a while looking for the second proceed
 
@@ -163,19 +179,18 @@ examples:
     dest = int(args.destination,0)
     ext = int(args.extension,0)
     ptr = int(args.pointer,0)
+    value = args.value
 
     # 
     # Try first to pull out a numeric argument, otherwise set it as a string.
     # 
     try:
         value = int(args.value,0)
+        print("Attepting to set %2X/%02X to %s" % (ext, ptr, value))
     except ValueError:
-        strValue = [ord(c) for c in args.value]
-        value = strValue
-        length = len(strValue)
+        length = len(value)
 
 
-    print("Attepting to set %2X/%02X to %s" % (ext, ptr, value))
     #value = hex(int(args.value,0))
 
     # queries a couple objects but setting up the full stack and bus for

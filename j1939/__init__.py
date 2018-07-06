@@ -303,7 +303,7 @@ class Bus(BusABC):
             else:
                 destination_address = DESTINATION_ADDRESS_GLOBAL
 
-            logger.warning("rts arbitration id: src=%s, dest=%s" % (pdu.source, destination_address))
+            logger.debug("rts arbitration id: src=%s, dest=%s" % (pdu.source, destination_address))
             rts_arbitration_id = ArbitrationID(source_address=pdu.source, destination_address=destination_address)
             rts_arbitration_id.pgn.value = PGN_TP_CONNECTION_MANAGEMENT
             rts_arbitration_id.pgn.pdu_specific = pdu.arbitration_id.pgn.pdu_specific
