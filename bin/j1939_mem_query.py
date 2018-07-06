@@ -129,6 +129,10 @@ if __name__ == "__main__":
                       default="0x17",
                       help="CAN destination, default is 0x17")
 
+    parser.add_argument("-l", "--length",
+                      default="4",
+                      help="length in bytes (default: 4)")
+
     parser.add_argument("extension",
                   default=None,
                   help="Memory object extension prefix to request in decimal or 0xHex")
@@ -177,11 +181,12 @@ if __name__ == "__main__":
         source = getStringVal(args.src)
         dest = getStringVal(args.dest)
         ptr = getStringVal(args.pointer)
+        length = getStringVal(args.length)
         ext = getStringVal(args.extension)
 
-        print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension=0x%02x" % (source, dest, ptr, ext))
+        print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
-        val = get_mem_object_single(length=4, src=source, dest=dest, pointer=ptr, extension=ext)
+        val = get_mem_object_single(length=length, src=source, dest=dest, pointer=ptr, extension=ext)
 
         print("0x%02x-0x%02x = %d (0x%08x)" % (ptr, ext, val, val))
 
