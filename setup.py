@@ -26,7 +26,13 @@ setup(
 
     install_requires=["python-can>=2.0.0a2"],
 
-    scripts=["./bin/j1939_logger.py"],
+    scripts=[
+        "./bin/j1939_logger.py",
+        "./bin/j1939_mem_query.py",
+        "./bin/j1939_mem_set.py",
+        "./bin/j1939_request_pgn.py",
+        "./bin/j1939_send_pgn.py"
+    ],
 
     # Tests can be run using `python setup.py test`
     test_suite="nose.collector",
