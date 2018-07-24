@@ -93,6 +93,7 @@ def parse_arguments():
     '''))
 
     parser.add_argument('-i', '--interface', dest="interface",
+                        default='socketcan',
                         #choices=can.interfaces.VALID_INTERFACES,
                         help=textwrap.dedent('''\
     Specify the backend CAN interface to use.

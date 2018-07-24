@@ -67,3 +67,6 @@ target/
 *.swp
 *.swo
 */*.swo
+
+# ignore moved examples
+bin/get_ecu_block.py

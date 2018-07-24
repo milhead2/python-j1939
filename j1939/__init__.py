@@ -80,7 +80,7 @@ class Bus(BusABC):
         self.queue = Queue()
         self.node_queue_list = []  # Start with nothing
 
-        super(Bus, self).__init__()
+        super(Bus, self).__init__(kwargs.get('channel'), kwargs.get('can_filters'))
         self._pdu_type = pdu_type
         self.timeout = 1
         self._long_message_throttler = threading.Thread(target=self._throttler_function)
@@ -384,7 +384,7 @@ class Bus(BusABC):
                 raise
 
     def shutdown(self):
-        self.can_notifier._running.clear()
+        self.can_notifier._running = False
         self.can_bus.shutdown()
         #self.j1939_notifier.running.clear()
         super(Bus, self).shutdown()
@@ -730,7 +730,7 @@ class Bus(BusABC):
                     msg.arbitration_id.source_address]
 
     def _throttler_function(self):
-        while self.can_notifier._running.is_set():
+        while self.can_notifier._running:
             _msg = None
             try:
                 _msg = self._long_message_segment_queue.get(timeout=0.1)
