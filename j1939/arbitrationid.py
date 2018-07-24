@@ -47,7 +47,6 @@ class ArbitrationID(object):
                         if  self.destination_address_value != pgn.pdu_specific:
                                 logger.debug("self._pgn=%s, self.destination_address_value = %x, pgn.pdu_specific = %x" %
                                         (self._pgn, self.destination_address_value, pgn.pdu_specific))
-
 #                        assert( self.destination_address_value == pgn.pdu_specific)
                     else:
                         raise ValueError("destination address must be in range (0-255)")

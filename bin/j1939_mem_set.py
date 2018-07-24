@@ -30,7 +30,7 @@ except:
     print("Genkey Not loaded, This one will generate garbage keys")
     class Genkey:
         def SeedToKey(self, seed):
-            return 0x12345678;
+            return 0x12345678
 
     security = Genkey()
 
@@ -61,7 +61,7 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
     sendBuffer = [length, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
     if isinstance(value, int):
         if length == 1:
-            sendBuffer[1] = value;
+            sendBuffer[1] = value
         elif length == 2:
             sendBuffer[1] = value & 0xff
             sendBuffer[2] = (value >> 8) & 0xff
@@ -94,7 +94,7 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
     # Wait around for a while looking for the second proceed
 
     countdown=10
-    proceedCount = 0;
+    proceedCount = 0
     while countdown:
         countdown -= 1
         rcvPdu = bus.recv(2)
@@ -108,7 +108,7 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
                         bus.send(dm16pdu)
                 if rcvPdu.data[0]==0 and rcvPdu.data[1]==0x19:
                     #print("Value Sent")
-                    break;
+                    break
 
 
     bus.shutdown()
