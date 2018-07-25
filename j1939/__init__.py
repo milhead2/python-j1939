@@ -84,7 +84,7 @@ class Bus(BusABC):
         self._pdu_type = pdu_type
         self.timeout = 1
         self._long_message_throttler = threading.Thread(target=self._throttler_function)
-        #self._long_message_throttler.daemon = True
+        self._long_message_throttler.daemon = True
 
         self._incomplete_received_pdus = {}
         self._incomplete_received_pdu_lengths = {}
