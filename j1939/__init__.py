@@ -40,9 +40,9 @@ from j1939.arbitrationid import ArbitrationID
 
 
 logger = logging.getLogger("j1939")
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.DEBUG)
 
-can_set_logging_level('warning')
+can_set_logging_level('debug')
 
 class j1939Listner(canListener):
 
