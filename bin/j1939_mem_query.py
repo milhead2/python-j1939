@@ -216,7 +216,7 @@ if __name__ == "__main__":
         print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
         val = get_mem_object_single(length=length, src=source, dest=dest, pointer=ptr, extension=ext)
-
+        print(val)
         out = ''
         for x in val:
             out+=chr(x)

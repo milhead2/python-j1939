@@ -40,8 +40,9 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
     countdown = 10
     result = -1
 
-    bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey)
-
+    bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False)
+    node = j1939.Node(bus, j1939.NodeName(), [src])
+    bus.connect(node)
 
     #dm14pgn = j1939.PGN()
     dm14data = [length, 0x15, pointer, 0x00, 0x00, extension, 0xff, 0xff]
@@ -116,14 +117,15 @@ def set_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
         rcvPdu = bus.recv(2)
         if rcvPdu:
             rcvPdu.display_radix='hex'
-            #print("received PDU: %s", rcvPdu)
+            print("received PDU: %s", rcvPdu)
             if rcvPdu.pgn == 0xd800:
                 if rcvPdu.data[0]==1 and rcvPdu.data[1]==0x11:
                     proceedCount += 1
                     if proceedCount == 2:
                         bus.send(dm16pdu)
+                        print('Sent ', dm16pdu)
                 if rcvPdu.data[0]==0 and rcvPdu.data[1]==0x19:
-                    #print("Value Sent")
+                    print("Value Sent")
                     break
 
 
@@ -152,6 +154,9 @@ examples:
 
     import timeit
     import argparse
+
+    import logging
+    import logging.handlers
 
     parser = argparse.ArgumentParser(description=title, formatter_class=argparse.RawDescriptionHelpFormatter, epilog=examples)
 

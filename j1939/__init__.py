@@ -10,6 +10,7 @@ http://en.wikipedia.org/wiki/J1939
 
 import threading
 import logging
+import logging.handlers
 import pprint
 import time
 
@@ -41,6 +42,21 @@ from j1939.arbitrationid import ArbitrationID
 
 logger = logging.getLogger("j1939")
 logger.setLevel(logging.DEBUG)
+
+lLevel = logging.DEBUG
+logger.setLevel(lLevel)
+ch = logging.StreamHandler()
+ch.setLevel(lLevel)
+chformatter = logging.Formatter('%(name)25s | %(threadName)10s | %(levelname)5s | %(message)s')
+ch.setFormatter(chformatter)
+#logger.addHandler(ch)
+
+fileHandler = logging.handlers.RotatingFileHandler('/tmp/j1939.log', \
+                                                maxBytes = (1024*1024*20), \
+                                                backupCount = 4)
+fileHandler.setFormatter(chformatter)
+fileHandler.setLevel(lLevel)
+logger.addHandler(fileHandler)
 
 can_set_logging_level('debug')
 
@@ -434,6 +450,7 @@ class Bus(BusABC):
         pdu = self._pdu_type(timestamp=msg.timestamp, data=msg.data, info_strings=[])
         pdu.arbitration_id.can_id = msg.arbitration_id
         pdu.info_strings = []
+        pdu.radix = 16
 
         logger.info("PI02: arbitration_id.pgn.value == 0x%04x" % arbitration_id.pgn.value)
 
