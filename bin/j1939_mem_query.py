@@ -38,7 +38,7 @@ def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
     countdown = 10
     result = None
 
-    bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01)
+    bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, broadcast=False)
     node = j1939.Node(bus, j1939.NodeName(), [src])
     bus.connect(node)
     pgn = j1939.PGN()
@@ -70,10 +70,12 @@ def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
             length = value[0]
             if length == 1:
                 result = value[1]
-            if length == 2:
+            elif length == 2:
                 result = (value[2] << 8) + value[1]
-            if length == 4:
+            elif length == 4:
                 result = (value[4] << 24) + (value[3] << 16) + (value[2] << 8) + value[1]
+            else:
+                result = value[1:]
             break # got what I was waiting for
         elif pdu.pgn == 0xd800:
             #bus.send(dm16pdu)
@@ -215,5 +217,9 @@ if __name__ == "__main__":
 
         val = get_mem_object_single(length=length, src=source, dest=dest, pointer=ptr, extension=ext)
 
-        print("0x%02x-0x%02x = %d (0x%08x)" % (ptr, ext, val, val))
+        out = ''
+        for x in val:
+            out+=chr(x)
+        print(out)
+        #print("0x%02x-0x%02x = %d (0x%08x)" % (ptr, ext, val, val))
 
