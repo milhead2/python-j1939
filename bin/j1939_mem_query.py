@@ -8,7 +8,7 @@ __date__ = "12/20/2017"
 __exp__ = "(expirimental)"  # (Release Version)
 title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
-import j1939
+import j1939.utils
 
 
 if __name__ == "__main__":
