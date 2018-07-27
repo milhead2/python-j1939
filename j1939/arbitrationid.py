@@ -26,6 +26,8 @@ class ArbitrationID(object):
         self.priority = priority
         self.destination_address_value = None
 
+        logger.debug("ArbitrationID:__init__: self._pgn=%s, type %s" % (pgn, type(pgn)))
+
         if pgn is None:
             self._pgn = PGN()
         elif pgn and isinstance(pgn, int):
@@ -35,18 +37,20 @@ class ArbitrationID(object):
         else:
             ValueError("pgn must have convertable type")
 
+
         #self.pgn = pgn
 
-        if pgn:
+        logger.debug("ArbitrationID:__init__: self._pgn=%s, type %s" % (self._pgn, type(self._pgn)))
+        if self._pgn:
             if self._pgn.is_destination_specific:
                 if destination_address is None:
                     self.destination_address_value = DESTINATION_ADDRESS_GLOBAL
                 else:
                     if destination_address >= 0 and destination_address <= 255:
                         self.destination_address_value = destination_address
-                        if  self.destination_address_value != pgn.pdu_specific:
+                        if  self.destination_address_value != self._pgn.pdu_specific:
                                 logger.debug("self._pgn=%s, self.destination_address_value = %x, pgn.pdu_specific = %x" %
-                                        (self._pgn, self.destination_address_value, pgn.pdu_specific))
+                                        (self._pgn, self.destination_address_value, self._pgn.pdu_specific))
 #                        assert( self.destination_address_value == pgn.pdu_specific)
                     else:
                         raise ValueError("destination address must be in range (0-255)")

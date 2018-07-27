@@ -41,7 +41,7 @@ from j1939.arbitrationid import ArbitrationID
 
 
 logger = logging.getLogger("j1939")
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 lLevel = logging.DEBUG
 logger.setLevel(lLevel)
@@ -51,14 +51,15 @@ chformatter = logging.Formatter('%(name)25s | %(threadName)10s | %(levelname)5s 
 ch.setFormatter(chformatter)
 #logger.addHandler(ch)
 
-fileHandler = logging.handlers.RotatingFileHandler('/tmp/j1939.log', \
-                                                maxBytes = (1024*1024*20), \
-                                                backupCount = 4)
-fileHandler.setFormatter(chformatter)
-fileHandler.setLevel(lLevel)
-logger.addHandler(fileHandler)
+if 0:
+    fileHandler = logging.handlers.RotatingFileHandler('/tmp/j1939.log', \
+                                                    maxBytes = (1024*1024*20), \
+                                                    backupCount = 4)
+    fileHandler.setFormatter(chformatter)
+    fileHandler.setLevel(lLevel)
+    logger.addHandler(fileHandler)
 
-can_set_logging_level('debug')
+    can_set_logging_level('debug')
 
 class j1939Listner(canListener):
 
@@ -267,6 +268,8 @@ class Bus(BusABC):
             while len(pdu.data) % 7 != 0:
                 pdu.data += b'\xFF'
 
+            logger.info("j1939.send: padded msg (mod 7) = %s" % pdu)
+            logger.info("MIL8:---------------------")
 
             # 
             # segment the longer message into 7 byte segments.  We need to prefix each 
@@ -276,7 +279,7 @@ class Bus(BusABC):
                 arbitration_id = copy.deepcopy(pdu.arbitration_id)
                 arbitration_id.pgn.value = PGN_TP_DATA_TRANSFER
 
-                logger.info("j1939.send: i=%d, pdu.arbitration_id.pgn.is_destination_specific=%d, data=%s" % 
+                logger.info("MIL8: j1939.send: i=%d, pdu.arbitration_id.pgn.is_destination_specific=%d, data=%s" % 
                             (i,pdu.arbitration_id.pgn.is_destination_specific, segment))
 
                 if pdu.arbitration_id.pgn.is_destination_specific and \
@@ -287,7 +290,7 @@ class Bus(BusABC):
                     arbitration_id.pgn.pdu_specific = DESTINATION_ADDRESS_GLOBAL
                     arbitration_id.destination_address = DESTINATION_ADDRESS_GLOBAL
 
-                logger.info("j1939.send: segment=%d, arb = %s" % (i, arbitration_id))
+                logger.info("MIL8: j1939.send: segment=%d, arb = %s" % (i, arbitration_id))
                 message = Message(arbitration_id=arbitration_id.can_id,
                                   extended_id=True,
                                   dlc=(len(segment) + 1),
@@ -297,10 +300,10 @@ class Bus(BusABC):
             #
             # At this point we have the queued messages sequenced in 'messages'
             #
-            logger.info("j1939.send: is_destination_specific=%d, destAddr=%s" % 
+            logger.info("MIL8: j1939.send: is_destination_specific=%d, destAddr=%s" % 
                             (pdu.arbitration_id.pgn.is_destination_specific, 
                              pdu.arbitration_id.destination_address))
-            logger.info("j1939.send: messages=%s" % messages)
+            logger.info("MIL8: j1939.send: messages=%s" % messages)
            
             if pdu.arbitration_id.pgn.is_destination_specific and \
                pdu.arbitration_id.destination_address != DESTINATION_ADDRESS_GLOBAL:
@@ -319,9 +322,8 @@ class Bus(BusABC):
             else:
                 destination_address = DESTINATION_ADDRESS_GLOBAL
 
-            logger.debug("rts arbitration id: src=%s, dest=%s" % (pdu.source, destination_address))
-            rts_arbitration_id = ArbitrationID(source_address=pdu.source, destination_address=destination_address)
-            rts_arbitration_id.pgn.value = PGN_TP_CONNECTION_MANAGEMENT
+            logger.debug("MIL8: rts arbitration id: src=%s, dest=%s" % (pdu.source, destination_address))
+            rts_arbitration_id = ArbitrationID(pgn=PGN_TP_CONNECTION_MANAGEMENT, source_address=pdu.source, destination_address=destination_address)
             rts_arbitration_id.pgn.pdu_specific = pdu.arbitration_id.pgn.pdu_specific
 
             temp_pgn = copy.deepcopy(pdu.arbitration_id.pgn)
@@ -335,6 +337,7 @@ class Bus(BusABC):
             if pdu.arbitration_id.pgn.is_destination_specific and \
                pdu.arbitration_id.destination_address != DESTINATION_ADDRESS_GLOBAL:
                 # send request to send
+                logger.debug("MIL8: rts to specific dest: src=%s, dest=%s" % (pdu.source, destination_address))
                 rts_msg = Message(extended_id=True,
                                   arbitration_id=rts_arbitration_id.can_id,
                                   data=[CM_MSG_TYPE_RTS,
@@ -347,7 +350,7 @@ class Bus(BusABC):
                                         pgn_msb],
                                   dlc=8)
                 try:
-                    logger.info("j1939.send: sending TP.CTS to %s: %s" % (destination_address, rts_msg))
+                    logger.info("MIL08: j1939.send: sending TP.RTS to %s: %s" % (destination_address, rts_msg))
                     self.can_bus.send(rts_msg)
                 except CanError:
                     if self._ignore_can_send_error:
@@ -356,8 +359,9 @@ class Bus(BusABC):
             else:
                 rts_arbitration_id.pgn.pdu_specific = DESTINATION_ADDRESS_GLOBAL
                 rts_arbitration_id.destination_address = DESTINATION_ADDRESS_GLOBAL
+                logger.debug("MIL8: rts to Global dest: src=%s, dest=%s" % (pdu.source, destination_address))
                 bam_msg = Message(extended_id=True,
-                                  arbitration_id=rts_arbitration_id.can_id,
+                                  arbitration_id=rts_arbitration_id.can_id | destination_address,
                                   data=[CM_MSG_TYPE_BAM,
                                         pdu_length_msb,
                                         pdu_length_lsb, len(messages),
@@ -679,6 +683,10 @@ class Bus(BusABC):
 
     def _process_cts(self, msg):
         logger.debug("_process_cts")
+        logger.debug("MIL8: cts message is: %s" % msg)
+        logger.debug("MIL8:    len(pdu-send-buffer) = %d" % len(self._incomplete_transmitted_pdus[0][23]))
+
+
         if msg.arbitration_id.pgn.pdu_specific in self._incomplete_transmitted_pdus:
             if msg.arbitration_id.source_address in self._incomplete_transmitted_pdus[
                     msg.arbitration_id.pgn.pdu_specific]:
@@ -688,12 +696,18 @@ class Bus(BusABC):
                 end_index = start_index + msg.data[1]
                 for _msg in self._incomplete_transmitted_pdus[msg.arbitration_id.pgn.pdu_specific][
                         msg.arbitration_id.source_address][start_index:end_index]:
+                    logger.debug("MIL8:        msg=%s" % (_msg))
+                    # TODO: Needs to be pacing if we get this working...
                     try:
-                        self.can_bus.send(msg)
+                        # Shouldent send a J1939 PDU as a CAN Message unless we are careful
+                        canMessage =  Message(arbitration_id=_msg.arbitration_id, data=_msg.data)
+                        self.can_bus.send(canMessage)
                     except CanError:
+                        
                         if self._ignore_can_send_error:
                             pass
                         raise
+        logger.debug("MIL8:    _process_cts complete")
 
     def _process_eom_ack(self, msg):
         logger.debug("_process_eom_ack")
