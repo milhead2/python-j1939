@@ -10,64 +10,6 @@ title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
 import j1939
 
-try:
-    import genkey
-    security = genkey.GenKey()
-    print("Private Genkey Loaded")
-except:
-    # Stuff in a fake genKey responder.  Pretty much just needs a
-    # reference to any class that can convert a Seed to a Key..  For
-    # obvious reasons I'm not posting mine
-    print("Genkey Not loaded, This one will generate garbage keys")
-    class Genkey:
-        def SeedToKey(self, seed):
-            return 0x12345678
-
-    security = Genkey()
-
-def send_pgn(requested_pgn, data, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None):
-
-    countdown = 10
-    result = None
-
-    if not isinstance(requested_pgn, int):
-        raise ValueError("pgn must be an integer.")
-    if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey)
-        close = True
-    else:
-        close = False
-    pgn = j1939.PGN()
-    if requested_pgn < 0xf000:
-        requested_pgn |= dest
-    pgn.value = requested_pgn#0xea00 + dest # request_pgn mem-object
-    aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)
-
-    print(data)
-    pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
-
-    pdu.display_radix='hex'
-
-    bus.send(pdu)
-    if close:
-        bus.shutdown()
-    if 0:
-        while countdown:
-            pdu = bus.recv(timeout=1)
-            if pdu and (pdu.pgn == 0xe800 or pdu.pgn == requested_pgn):
-                result = list(pdu.data) 
-                break # got what I was waiting for
-
-            if pdu: 
-                countdown -= 1
-
-
-        if not result:
-            raise IOError(" no CAN response")
-
-
-        return result
-
 
 if __name__ == "__main__":
 
@@ -141,7 +83,7 @@ if __name__ == "__main__":
     
     print ("Sending PGN: (pgn=0x%04x (%d), src=0x%02x, dest=0x%02x)" % (pgn, pgn, source, dest))
 
-    val = send_pgn(pgn, data, length=len(data), src=source, dest=dest)
+    val = j1939.utils.send_pgn(pgn, data, length=len(data), src=source, dest=dest)
 
     print("returned PGN = %s" % val)
 

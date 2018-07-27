@@ -32,63 +32,6 @@ if __name__ == "__main__":
 1532554003.941260    PRI=6 PGN=0xfefc               SRC=0x17    ff ff ff ff ff ff ff ff
 '''
 
-def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, pointer=0, extension=0):
-    #from can.interfaces.interface import *
-
-    countdown = 10
-    result = None
-
-    bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, broadcast=False)
-    node = j1939.Node(bus, j1939.NodeName(), [src])
-    bus.connect(node)
-    pgn = j1939.PGN()
-    pgn.value = 0xd900 + dest # Request a DM14 mem-object
-    aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)
-
-    data = [length, 0x13, pointer, 0x00, 0x00, extension, 0xff, 0xff]
-    pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
-    assert(pdu != None)
-    pdu.display_radix='hex'
-
-    bus.send(pdu)
-
-    '''dm16pgn = j1939.PGN(pdu_format=0xd9, pdu_specific=dest)
-    dm16aid = j1939.ArbitrationID(pgn=dm16pgn, source_address=src, destination_address=dest)
-    dm16pdu = j1939.PDU(timestamp=0.0, arbitration_id=dm16aid, data=[0xff, 0x09, 0, 0, 0, 0, 0xff, 0xff])
-    dm16pdu.display_radix='hex'
-
-    print("## PDU=%s " % (dm16pdu))'''
-
-
-    while countdown:
-        pdu = bus.recv(timeout=1)
-        if pdu is None:
-            continue
-        print(pdu)
-        if pdu.pgn == 0xd700:
-            value = list(pdu.data)
-            length = value[0]
-            if length == 1:
-                result = value[1]
-            elif length == 2:
-                result = (value[2] << 8) + value[1]
-            elif length == 4:
-                result = (value[4] << 24) + (value[3] << 16) + (value[2] << 8) + value[1]
-            else:
-                result = value[1:]
-            break # got what I was waiting for
-        elif pdu.pgn == 0xd800:
-            #bus.send(dm16pdu)
-            pass
-        countdown -= 1
-
-    bus.shutdown()
-
-    if result is None:
-        raise IOError(" no CAN response")
-
-
-    return result
 
 def get_mem_object(bus=None, length=4, src=0, dest=0x17, pointer=0, extension=0):
     countdown = 10
@@ -181,7 +124,7 @@ if __name__ == "__main__":
         if 1:
             start = timeit.default_timer()
             for p, e in [(0x15, 0xe9), (0x00, 0xf1), (0x50, 0xe9), (0x75, 0xe9)]:
-                val = get_mem_object_single(length=4, src=0, dest=0x17, pointer=p, extension=e)
+                val = j1939.utils.get_mem_object_single(length=4, src=0, dest=0x17, pointer=p, extension=e)
                 print("0x%02x-0x%02x = %d" % (p, e, val))
             print("elapsed = %s s" % (timeit.default_timer() - start))
 
@@ -215,7 +158,7 @@ if __name__ == "__main__":
 
         print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
-        val = get_mem_object_single(length=length, src=source, dest=dest, pointer=ptr, extension=ext)
+        val = j1939.utils.get_mem_object_single(length=length, src=source, dest=dest, pointer=ptr, extension=ext)
         print(val)
         out = ''
         for x in val:
