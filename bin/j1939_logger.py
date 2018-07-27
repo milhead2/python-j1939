@@ -9,7 +9,7 @@ import can
 import j1939
 import logging
 
-lLevel = logging.WARNING
+lLevel = logging.DEBUG
 logger = logging.getLogger()
 
 if 1:
@@ -93,6 +93,7 @@ def parse_arguments():
     '''))
 
     parser.add_argument('-i', '--interface', dest="interface",
+                        default='socketcan',
                         #choices=can.interfaces.VALID_INTERFACES,
                         help=textwrap.dedent('''\
     Specify the backend CAN interface to use.

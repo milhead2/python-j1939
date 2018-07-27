@@ -19,6 +19,18 @@ if __name__ == "__main__":
     import logging
     import textwrap
 
+'''
+1532554003.434215    PRI=7 PGN=0xff9a               SRC=0x17    d3 ff ff ff ff ff ff ff
+1532554003.434771    PRI=6 PGN=0xd041      DST=0x41 SRC=0x17    a1 ff ff ff ff ff ff ff
+1532554003.863598    PRI=7 PGN=0xd917      DST=0x17 SRC=0x18    0a 13 11 00 00 e9 ff ff
+1532554003.868833    PRI=6 PGN=0xd818      DST=0x18 SRC=0x17    0a 11 ff ff ff ff ff ff
+1532554003.901772    PRI=7 PGN=0xd718      DST=NONE(error) SRC=0x17    ff 59 30 31 2e 30 34 2e 32 30 00
+1532554003.908125    PRI=7 PGN=0xd917      DST=0x17 SRC=0x18    ff 09 00 00 00 00 ff ff
+1532554003.939402    PRI=7 PGN=0xff9a               SRC=0x17    d3 ff ff ff ff ff ff ff
+1532554003.939959    PRI=6 PGN=0xd041      DST=0x41 SRC=0x17    9c ff ff ff ff ff ff ff
+1532554003.940621    PRI=6 PGN=0xfec1               SRC=0x17    00 00 00 00 00 00 00 00
+1532554003.941260    PRI=6 PGN=0xfefc               SRC=0x17    ff ff ff ff ff ff ff ff
+'''
 
 def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, pointer=0, extension=0):
     #from can.interfaces.interface import *
@@ -26,7 +38,9 @@ def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
     countdown = 10
     result = None
 
-    bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01)
+    bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, broadcast=False)
+    node = j1939.Node(bus, j1939.NodeName(), [src])
+    bus.connect(node)
     pgn = j1939.PGN()
     pgn.value = 0xd900 + dest # Request a DM14 mem-object
     aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)
@@ -38,24 +52,39 @@ def get_mem_object_single(channel='can0', bustype='socketcan', length=4, src=0, 
 
     bus.send(pdu)
 
+    '''dm16pgn = j1939.PGN(pdu_format=0xd9, pdu_specific=dest)
+    dm16aid = j1939.ArbitrationID(pgn=dm16pgn, source_address=src, destination_address=dest)
+    dm16pdu = j1939.PDU(timestamp=0.0, arbitration_id=dm16aid, data=[0xff, 0x09, 0, 0, 0, 0, 0xff, 0xff])
+    dm16pdu.display_radix='hex'
+
+    print("## PDU=%s " % (dm16pdu))'''
+
+
     while countdown:
         pdu = bus.recv(timeout=1)
-        if pdu and pdu.pgn == 0xd700:
+        if pdu is None:
+            continue
+        print(pdu)
+        if pdu.pgn == 0xd700:
             value = list(pdu.data)
             length = value[0]
             if length == 1:
                 result = value[1]
-            if length == 2:
+            elif length == 2:
                 result = (value[2] << 8) + value[1]
-            if length == 4:
+            elif length == 4:
                 result = (value[4] << 24) + (value[3] << 16) + (value[2] << 8) + value[1]
+            else:
+                result = value[1:]
             break # got what I was waiting for
-
+        elif pdu.pgn == 0xd800:
+            #bus.send(dm16pdu)
+            pass
         countdown -= 1
 
     bus.shutdown()
 
-    if (result == None):
+    if result is None:
         raise IOError(" no CAN response")
 
 
@@ -187,6 +216,10 @@ if __name__ == "__main__":
         print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
         val = get_mem_object_single(length=length, src=source, dest=dest, pointer=ptr, extension=ext)
-
-        print("0x%02x-0x%02x = %d (0x%08x)" % (ptr, ext, val, val))
+        print(val)
+        out = ''
+        for x in val:
+            out+=chr(x)
+        print(out)
+        #print("0x%02x-0x%02x = %d (0x%08x)" % (ptr, ext, val, val))
 

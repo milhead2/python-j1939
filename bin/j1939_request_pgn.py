@@ -46,7 +46,7 @@ def request_pgn_single(requested_pgn, channel='can0', bustype='socketcan', lengt
 
     bus.shutdown()
 
-    if  not result:
+    if not result:
         raise IOError(" no CAN response")
 
 

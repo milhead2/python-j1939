@@ -84,8 +84,8 @@ if __name__ == "__main__":
         else:
             temp = int(s, base=10)
             # 4 bit numbers need to not have a preceding 0
-            if temp < 0xf0:
-                temp = temp << 8
+            #if temp < 0xf0:
+            #    temp = temp << 8
             return temp
 
 
