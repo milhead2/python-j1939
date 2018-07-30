@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
     print ("request_pgn_single(pgn=0x%04x (%d), src=0x%02x, dest=0x%02x)" % (pgn, pgn, source, dest))
 
-    val = j1939.utils.request_pgn_single(pgn, length=4, src=source, dest=dest)
+    val = j1939.utils.request_pgn(pgn, length=4, src=source, dest=dest)
 
     print("returned PGN = %s" % val)
 

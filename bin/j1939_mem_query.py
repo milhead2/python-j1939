@@ -77,11 +77,11 @@ def getStringVal(s):
 
 if __name__ == "__main__":
 
-    lLevel = logging.WARN
-    jlogger = logging.getLogger("j1939")
-    jlogger.setLevel(lLevel)
-    ch = logging.StreamHandler()
-    jlogger.addHandler(ch)
+    #lLevel = logging.WARN
+    #jlogger = logging.getLogger("j1939")
+    #jlogger.setLevel(lLevel)
+    #ch = logging.StreamHandler()
+    #jlogger.addHandler(ch)
 
     parser = argparse.ArgumentParser(description='''\
            example: %(prog)s -d 0x21 0xe9 -p 0x15
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         if 1:
             start = timeit.default_timer()
             for p, e in [(0x15, 0xe9), (0x00, 0xf1), (0x50, 0xe9), (0x75, 0xe9)]:
-                val = j1939.utils.get_mem_object_single(length=4, src=0, dest=0x17, pointer=p, extension=e)
+                val = j1939.utils.get_mem_object(length=4, src=0, dest=0x17, pointer=p, extension=e)
                 print("0x%02x-0x%02x = %d" % (p, e, val))
             print("elapsed = %s s" % (timeit.default_timer() - start))
 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
         print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
-        val = j1939.utils.get_mem_object_single(length=length, src=source, dest=dest, pointer=ptr, extension=ext)
+        val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest)
         print(val)
         out = ''
         for x in val:

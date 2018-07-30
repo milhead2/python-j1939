@@ -80,6 +80,6 @@ examples:
     # queries a couple objects but setting up the full stack and bus for
     # each takes a long time.
     start = timeit.default_timer()
-    val = j1939.utils.set_mem_object_single(length=length, src=src, dest=dest, pointer=ptr, extension=ext, value=value)
+    val = j1939.utils.set_mem_object(ptr, ext, value, length=length, src=src, dest=dest)
     #set_mem_object_single(length=1, src=0, dest=0x17, pointer=0x66, extension=0xea, value=127)
     print("elapsed = %s s" % (timeit.default_timer() - start))
