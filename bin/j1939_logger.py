@@ -9,7 +9,7 @@ import can
 import j1939
 import logging
 
-lLevel = logging.DEBUG
+lLevel = logging.WARN
 logger = logging.getLogger()
 
 if 1:
