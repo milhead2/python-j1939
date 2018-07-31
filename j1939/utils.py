@@ -2,7 +2,7 @@ from __future__ import print_function
 import j1939
 import logging
 
-logger = logging.getLogger('j1939')
+logger = logging.getLogger(__name__)
 #
 # for responding to seed/key requests provide your own keyGenerator
 # class..

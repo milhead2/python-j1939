@@ -38,7 +38,7 @@ from j1939.notifier import Notifier
 from j1939.node import Node
 from j1939.nodename import NodeName
 from j1939.arbitrationid import ArbitrationID
-
+from j1939.utils import *
 
 logger = logging.getLogger("j1939")
 logger.setLevel(logging.WARNING)
@@ -163,7 +163,8 @@ class Bus(BusABC):
 
     def notification(self, inboundMessage):
         #self.rx_can_message_queue.put(inboundMessage)
-
+        if self.can_notifier._running is False:
+                logger.info('Aborting message %s bus is not running', inboundMessage)
         if isinstance(inboundMessage, Message):
             logger.info('\n\nnotification: Got a Message from CAN: %s' % inboundMessage)
             if inboundMessage.id_type:

@@ -105,6 +105,10 @@ if __name__ == "__main__":
                       default="4",
                       help="length in bytes (default: 4)")
 
+    parser.add_argument("-c", "--channel",
+                  default="can0",
+                  help="Memory object pointer offset to request in decimal or 0xHex")
+
     parser.add_argument("extension",
                   default=None,
                   help="Memory object extension prefix to request in decimal or 0xHex")
@@ -112,7 +116,6 @@ if __name__ == "__main__":
     parser.add_argument("pointer",
                   default=None,
                   help="Memory object pointer offset to request in decimal or 0xHex")
-
 
 
     args = parser.parse_args()
@@ -155,14 +158,15 @@ if __name__ == "__main__":
         ptr = getStringVal(args.pointer)
         length = getStringVal(args.length)
         ext = getStringVal(args.extension)
-
+	channel = args.channel
         print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
-        val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest)
+        val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel)
         print(val)
         out = ''
-        for x in val:
-            out+=chr(x)
-        print(out)
+        if isinstance(val, list):
+                for x in val:
+                    out+=chr(x)
+                print(out)
         #print("0x%02x-0x%02x = %d (0x%08x)" % (ptr, ext, val, val))
 
