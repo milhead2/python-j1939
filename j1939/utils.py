@@ -2,7 +2,7 @@ from __future__ import print_function
 import j1939
 import logging
 
-logger = logging.getLogger('j1939')
+logger = logging.getLogger(__name__)
 #
 # for responding to seed/key requests provide your own keyGenerator
 # class..
@@ -222,9 +222,9 @@ def send_pgn(requested_pgn, data, channel='can0', bustype='socketcan', length=4,
         while countdown:
             pdu = bus.recv(timeout=1)
             if pdu and (pdu.pgn == 0xe800 or pdu.pgn == requested_pgn):
-                result = list(pdu.data) 
+                result = list(pdu.data)
                 break # got what I was waiting for
-            if pdu: 
+            if pdu:
                 countdown -= 1
         if not result:
             raise IOError(" no CAN response")
