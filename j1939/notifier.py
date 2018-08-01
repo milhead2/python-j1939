@@ -3,6 +3,9 @@ try:
     import queue
 except ImportError:
     import Queue as queue
+    
+from can.notifier import Notifier as canNotifier
+import socket
 
 #same as a CAN Notifier but will listen to a queue
 #recv function.
@@ -45,4 +48,19 @@ class Notifier(object):
         for listener in self.listeners:
             listener.stop()
 
-            
+class CanNotifier(canNotifier):
+    def _rx_thread(self, bus):
+        msg = None
+        try:
+            while self._running:
+                if msg is not None:
+                    with self._lock:
+                        for callback in self.listeners:
+                            callback(msg)
+                msg = bus.recv(self.timeout)
+        except socket.error as err:
+            if self._runnung:
+                raise
+        except Exception as exc:
+            self.exception = exc
+            raise    

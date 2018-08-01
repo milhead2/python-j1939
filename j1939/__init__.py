@@ -26,7 +26,6 @@ from can import CanError
 from can import Message
 from can import set_logging_level as can_set_logging_level
 from can.interface import Bus as RawCanBus
-from can.notifier import Notifier as canNotifier
 from can.listener import Listener as canListener
 from can.bus import BusABC
 
@@ -34,7 +33,7 @@ from can.bus import BusABC
 from j1939.pdu import PDU
 from j1939.pgn import PGN
 from j1939.constants import *
-from j1939.notifier import Notifier
+from j1939.notifier import Notifier, CanNotifier as canNotifier
 from j1939.node import Node
 from j1939.nodename import NodeName
 from j1939.arbitrationid import ArbitrationID
