@@ -4,6 +4,7 @@ try:
 except ImportError:
     import Queue as queue
     
+from can import CanError
 from can.notifier import Notifier as canNotifier
 import socket
 
@@ -58,8 +59,8 @@ class CanNotifier(canNotifier):
                         for callback in self.listeners:
                             callback(msg)
                 msg = bus.recv(self.timeout)
-        except socket.error as err:
-            if self._runnung:
+        except CanError as err:
+            if self._running:
                 raise
         except Exception as exc:
             self.exception = exc

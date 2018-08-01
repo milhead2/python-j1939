@@ -50,7 +50,7 @@ chformatter = logging.Formatter('%(name)25s | %(threadName)10s | %(levelname)5s 
 ch.setFormatter(chformatter)
 #logger.addHandler(ch)
 
-if 0:
+if 1:
     fileHandler = logging.handlers.RotatingFileHandler('/tmp/j1939.log', \
                                                     maxBytes = (1024*1024*20), \
                                                     backupCount = 4)
