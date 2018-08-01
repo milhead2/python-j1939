@@ -103,8 +103,13 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
                     if proceedCount == 2:
                         bus.send(dm16pdu)
                         logger.info('Sent %s', dm16pdu)
-                if rcvPdu.data[0]==0 and rcvPdu.data[1]==0x19:
+                elif rcvPdu.data[0]==0 and rcvPdu.data[1]==0x19:
                     logger.info("Value Sent")
+                    result = 1
+                    break
+                elif rcvPdu.data[0]==0 and rcvPdu.data[1]==0x1B:
+                    logger.info("Rejected")
+                    result = 0
                     break
     if close:
         bus.shutdown()
@@ -131,21 +136,20 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
     bus.send(pdu)
     while countdown:
         pdu = bus.recv(timeout=1)
-        if pdu is None:
-            continue
-        logger.info(pdu)
-        if pdu.pgn == 0xd700:
-            value = list(pdu.data)
-            length = value[0]
-            if length == 1:
-                result = value[1]
-            elif length == 2:
-                result = (value[2] << 8) + value[1]
-            elif length == 4:
-                result = (value[4] << 24) + (value[3] << 16) + (value[2] << 8) + value[1]
-            else:
-                result = value[1:]
-            break # got what I was waiting for
+        if pdu is not None:
+            logger.info(pdu)
+            if pdu.pgn == 0xd700:
+                value = list(pdu.data)
+                length = value[0]
+                if length == 1:
+                    result = value[1]
+                elif length == 2:
+                    result = (value[2] << 8) + value[1]
+                elif length == 4:
+                    result = (value[4] << 24) + (value[3] << 16) + (value[2] << 8) + value[1]
+                else:
+                    result = value[1:]
+                break # got what I was waiting for
         countdown -= 1
     if close:
         bus.shutdown()
