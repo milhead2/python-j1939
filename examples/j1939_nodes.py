@@ -1,3 +1,11 @@
+#
+# This example is an attempt to operate two address endpoints concurrently.
+#
+# Currently it's not tested and I suspect it's not handling the address claims correctly
+# among other things
+#
+
+
 from __future__ import print_function
 
 import can

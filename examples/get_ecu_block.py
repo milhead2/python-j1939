@@ -1,8 +1,8 @@
 from __future__ import print_function
 
-import j1939_request_pgn
+import j1939.utils
 
-val = j1939_request_pgn.request_pgn_single(0xfeda, src=0xff)
+val = j1939.utils.request_pgn(0xfeda, src=0xff)
 fieldCount = val[0]
 print ("%d elements in list" % fieldCount)
 
