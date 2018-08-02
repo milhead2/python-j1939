@@ -1,8 +1,39 @@
+#!/usr/bin/python
+#
 from __future__ import print_function
 
+_name = "get_ecu_block"
+__version__ = "1.1.0"
+__date__ = "8/2/2018"
+__exp__ = "(expirimental)"  # (Release Version)
+title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
+
+import argparse
 import j1939.utils
 
-val = j1939.utils.request_pgn(0xfeda, src=0xff)
+parser = argparse.ArgumentParser(description='''\
+        example: %(prog)s -d 0x17 
+        
+                will request ecu block from destination '''
+                                    ,epilog=title)
+
+parser.add_argument("-s", "--src",
+                    default="0xff",
+                    help="j1939 source address decimal or hex, default is 0")
+
+parser.add_argument("-d", "--dest",
+                    default="0x17",
+                    help="CAN destination, default is 0x17")
+
+args = parser.parse_args()
+
+
+source = int(args.src, 0)
+dest = int(args.dest, 0)
+
+#expects a BAM back pretty
+val = j1939.utils.request_pgn(0xfeda, src=source, dest=dest)
+
 fieldCount = val[0]
 print ("%d elements in list" % fieldCount)
 

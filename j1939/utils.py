@@ -164,9 +164,15 @@ def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, sr
 
     if not isinstance(requested_pgn, int):
         raise ValueError("pgn must be an integer.")
+#    if bus is None:
+#        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01)
+#        close = True
     if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01)
+        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False)
+        node = j1939.Node(bus, j1939.NodeName(), [src])
+        bus.connect(node)
         close = True
+        
     pgn = j1939.PGN()
     pgn.value = 0xea00 + dest # request_pgn mem-object
     aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)

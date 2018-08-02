@@ -2,7 +2,7 @@
 #
 from __future__ import print_function
 
-_name = ""
+_name = "j1939_request_pgn"
 __version__ = "1.0.0"
 __date__ = "12/21/2017"
 __exp__ = "(expirimental)"  # (Release Version)
