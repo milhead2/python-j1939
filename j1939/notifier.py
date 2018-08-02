@@ -59,9 +59,17 @@ class CanNotifier(canNotifier):
                         for callback in self.listeners:
                             callback(msg)
                 msg = bus.recv(self.timeout)
+
+        # 
+        # The next two handlers are intended to mask race conditions that can occur when 
+        # we are blocked on a can-receive and close the bus.
         except CanError as err:
             if self._running:
                 raise
+        except ValueError as err:
+            if self._running:
+                raise
+                
         except Exception as exc:
             self.exception = exc
             raise    

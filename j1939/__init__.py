@@ -361,7 +361,7 @@ class Bus(BusABC):
                 rts_arbitration_id.destination_address = DESTINATION_ADDRESS_GLOBAL
                 logger.debug("MIL8: rts to Global dest: src=%s, dest=%s" % (pdu.source, destination_address))
                 bam_msg = Message(extended_id=True,
-                                  arbitration_id=rts_arbitration_id.can_id | destination_address,
+                                  arbitration_id=rts_arbitration_id.can_id | pdu.source,
                                   data=[CM_MSG_TYPE_BAM,
                                         pdu_length_msb,
                                         pdu_length_lsb, len(messages),
