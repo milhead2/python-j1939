@@ -25,14 +25,19 @@ parser.add_argument("-d", "--dest",
                     default="0x17",
                     help="CAN destination, default is 0x17")
 
+parser.add_argument("-t", "--timeout",
+                    default="10",
+                    help="larger numbers give the dest more time to respond")
+
 args = parser.parse_args()
 
 
 source = int(args.src, 0)
 dest = int(args.dest, 0)
+timeout = int(args.timeout, 0)
 
 #expects a BAM back pretty
-val = j1939.utils.request_pgn(0xfeda, src=source, dest=dest)
+val = j1939.utils.request_pgn(0xfeda, src=source, dest=dest, timeout=timeout)
 
 fieldCount = val[0]
 print ("%d elements in list" % fieldCount)

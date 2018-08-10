@@ -26,8 +26,8 @@ except:
 
     security = Genkey()
 
-def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None):
-    countdown = 10
+def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+    countdown = timeout
     result = -1
     close = False
     if bus is None:
@@ -89,7 +89,6 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     logger.info("## PDU=%s ", dm16pdu)
 
     # Wait around for a while looking for the second proceed
-    countdown=10
     proceedCount = 0
     while countdown:
         countdown -= 1
@@ -115,8 +114,8 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
         bus.shutdown()
     return result
 
-def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None):
-    countdown = 10
+def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+    countdown = timeout
     result = None
     close = False
 
@@ -157,8 +156,8 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
         raise IOError(" no CAN response")
     return result
 
-def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None):
-    countdown = 10
+def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+    countdown = timeout
     result = None
     close = False
 
@@ -203,8 +202,8 @@ def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, sr
     return result
 
 
-def send_pgn(requested_pgn, data, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None):
-    countdown = 10
+def send_pgn(requested_pgn, data, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+    countdown = timeout
     result = None
 
     if not isinstance(requested_pgn, int):
