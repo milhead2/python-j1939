@@ -158,7 +158,7 @@ if __name__ == "__main__":
         ptr = getStringVal(args.pointer)
         length = getStringVal(args.length)
         ext = getStringVal(args.extension)
-	channel = args.channel
+        channel = args.channel
         print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
         val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel)
