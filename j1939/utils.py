@@ -1,6 +1,7 @@
 from __future__ import print_function
 import j1939
 import logging
+import sys
 
 logger = logging.getLogger(__name__)
 #
@@ -30,11 +31,20 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     countdown = 10
     result = -1
     close = False
-    if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False)
-        node = j1939.Node(bus, j1939.NodeName(), [src])
-        bus.connect(node)
-        close = True
+
+    if sys.platform == 'win32':
+		if bus is None:
+	        bus = j1939.Bus(timeout=0.01, keygen=security.SeedToKey, broadcast=None, name='j1939StartGeneral', ignoreCanSendError=True)
+	        node = j1939.Node(bus, j1939.NodeName(), [src])
+    	    bus.connect(node)
+        	close = True
+	else:
+	    if bus is None:
+	        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False)
+	        node = j1939.Node(bus, j1939.NodeName(), [src])
+	        bus.connect(node)
+	        close = True
+			
     dm14data = [length, 0x15, pointer, 0x00, 0x00, extension, 0xff, 0xff]
 
     dm14pgn = j1939.PGN(pdu_format=0xd9, pdu_specific=dest)
