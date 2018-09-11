@@ -32,15 +32,18 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     result = -1
     close = False
 
+    # only watch for the memory object pgn's
+    filt = [{'pgn':0xd800, 'source':dest},{'pgn':0xd400, 'source':dest}]
+
     if sys.platform == 'win32':
         if bus is None:
-            bus = j1939.Bus(timeout=0.01, keygen=security.SeedToKey, broadcast=None, name='j1939StartGeneral', ignoreCanSendError=True)
+            bus = j1939.Bus(timeout=0.01, keygen=security.SeedToKey, broadcast=None, name='j1939StartGeneral', ignoreCanSendError=True, j1939_filters=filt)
             node = j1939.Node(bus, j1939.NodeName(), [src])
             bus.connect(node)
             close = True
     else:
         if bus is None:
-            bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False)
+            bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False, j1939_filters=filt)
             node = j1939.Node(bus, j1939.NodeName(), [src])
             bus.connect(node)
             close = True
