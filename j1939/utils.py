@@ -199,15 +199,21 @@ def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, sr
     pdu.display_radix='hex'
 
     bus.send(pdu)
-
+    maxPdu = 50
     while countdown:
         pdu = bus.recv(timeout=1)
         if pdu and (pdu.pgn == 0xe800 or pdu.pgn == requested_pgn):
             result = list(pdu.data) 
             break # got what I was waiting for
 
-        if pdu: 
+        elif pdu:
+            maxPdu -=1
+            if maxPdu <= 0:
+                raise IOError('Bus too busy')
+        elif pdu is None:
             countdown -= 1
+        else:
+            raise Exception('WHAT HAPPENED')
     if close:
         bus.shutdown()
     if not result:
