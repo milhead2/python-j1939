@@ -141,7 +141,12 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
     pgn.value = 0xd900 + dest # Request a DM14 mem-object
     aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)
 
-    data = [length, 0x13, pointer, 0x00, 0x00, extension, 0xff, 0xff]
+    # Get the 3 bytes of the pointer and put them in the correct locations
+    pointer0 = pointer & 0xff
+    pointer1 = (pointer & 0xff00) >> 8
+    pointer2 = (pointer & 0xff0000) >> 16
+
+    data = [length, 0x13, pointer0, pointer1, pointer2, extension, 0xff, 0xff]
     pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
     assert(pdu != None)
     pdu.display_radix='hex'
