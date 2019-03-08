@@ -107,6 +107,7 @@ class Bus(BusABC):
         self._incomplete_transmitted_pdus = {}
         self._long_message_segment_queue = Queue(0)
         self._key_generation_fcn = None
+        self._ignore_can_send_error = False
 
         if 'keygen' in kwargs and kwargs['keygen'] is not None:
             self._key_generation_fcn = kwargs['keygen']
