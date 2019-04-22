@@ -9,7 +9,7 @@ from j1939.pdu import PDU
 from j1939.nodename import NodeName
 
 logger = logging.getLogger(__name__)
-logger.debug("loading ", __name__)
+logger.debug("loading %s", __name__)
 
 
 
