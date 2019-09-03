@@ -12,6 +12,8 @@ physical layer is used between the tractor and trailer, specified in ISO 11992.
 
 This package is dependent on, was a part of, and broken out from,  the `python-can <https://github.com/hardbyte/python-can/>`__ project that Brian Thorne has maintained for years..
 
+This codce currently is compatable with the python-can version 3.3.2.  After you clone the python-can repo be sure to checkout the 'release-3.3.2' branch
+
 The **C**\ ontroller **A**\ rea **N**\ etwork is a bus standard designed
 to allow microcontrollers and devices to communicate with each other. It
 has priority based bus arbitration, reliable deterministic
