@@ -32,7 +32,7 @@ def parse_arguments():
         a configuration file - see the README for detail.
         """),
         epilog="""Pull requests and issues
-        https://bitbucket.org/hardbyte/python-can""",
+        https://github.com/hardbyte/python-can""",
         formatter_class=argparse.RawTextHelpFormatter
     )
 
