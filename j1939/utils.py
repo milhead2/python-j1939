@@ -64,21 +64,10 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
         sendBuffer.append(0)
 
     logger.info("## length=%d, value=%s " % (length, value))
-    if isinstance(value, int):
-        if length == 1:
-            sendBuffer[1] = value
-        elif length == 2:
-            sendBuffer[1] = value & 0xff
-            sendBuffer[2] = (value >> 8) & 0xff
-        elif length == 3:
-            sendBuffer[1] = value & 0xff
-            sendBuffer[2] = (value >> 8) & 0xff
-            sendBuffer[3] = (value >> 16) & 0xff
-        elif length == 4:
-            sendBuffer[1] = value & 0xff
-            sendBuffer[2] = (value >> 8) & 0xff
-            sendBuffer[3] = (value >> 16) & 0xff
-            sendBuffer[4] = (value >> 24) & 0xff
+    if isinstance(value, int) and length < 8:
+        if length < 8:
+            for i in range(0, length):
+                sendBuffer[i] = (value >> (8*i)) & 0xff
         else:
             raise ValueError("Don't know how to send a %d byte integer" % length)
 
@@ -91,6 +80,9 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
         sendBuffer[0] = length+1
         for i in range(len(value)):
             sendBuffer[i+1] = ord(value[i])
+
+    else:
+        raise ValueError("Data type not supported.")
 
     logger.info("## sendBuffer=%s ", sendBuffer)
 
