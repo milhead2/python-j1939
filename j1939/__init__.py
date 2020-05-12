@@ -53,10 +53,6 @@ ch.setFormatter(chformatter)
 #logger.addHandler(ch)
 
 if 1:
-<<<<<<< Updated upstream
-=======
-    print ("TEMP_FILE: ", os.path.join(tempfile.gettempdir(),  'j1939.log'))
->>>>>>> Stashed changes
     fileHandler = logging.handlers.RotatingFileHandler(os.path.join(tempfile.gettempdir(), \
                                                        'j1939.log'), \
                                                        maxBytes = (1024*1024*20), \
