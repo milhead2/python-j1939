@@ -13,6 +13,8 @@ import logging
 import logging.handlers
 import pprint
 import time
+import tempfile
+import os
 
 try:
     from queue import Queue, Empty
@@ -51,9 +53,10 @@ ch.setFormatter(chformatter)
 #logger.addHandler(ch)
 
 if 1:
-    fileHandler = logging.handlers.RotatingFileHandler('/tmp/j1939.log', \
-                                                    maxBytes = (1024*1024*20), \
-                                                    backupCount = 4)
+    fileHandler = logging.handlers.RotatingFileHandler(os.path.join(tempfile.gettempdir(), \
+                                                       os.urandom(24).hex()), \
+                                                       maxBytes = (1024*1024*20), \
+                                                       backupCount = 4)
     fileHandler.setFormatter(chformatter)
     fileHandler.setLevel(lLevel)
     logger.addHandler(fileHandler)
