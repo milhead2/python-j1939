@@ -54,7 +54,7 @@ ch.setFormatter(chformatter)
 
 if 1:
     fileHandler = logging.handlers.RotatingFileHandler(os.path.join(tempfile.gettempdir(), \
-                                                       os.urandom(24).hex()), \
+                                                       'j1939.log'), \
                                                        maxBytes = (1024*1024*20), \
                                                        backupCount = 4)
     fileHandler.setFormatter(chformatter)
