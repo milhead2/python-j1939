@@ -53,6 +53,10 @@ ch.setFormatter(chformatter)
 #logger.addHandler(ch)
 
 if 1:
+<<<<<<< Updated upstream
+=======
+    print ("TEMP_FILE: ", os.path.join(tempfile.gettempdir(),  'j1939.log'))
+>>>>>>> Stashed changes
     fileHandler = logging.handlers.RotatingFileHandler(os.path.join(tempfile.gettempdir(), \
                                                        'j1939.log'), \
                                                        maxBytes = (1024*1024*20), \
@@ -112,11 +116,8 @@ class Bus(BusABC):
         self._key_generation_fcn = None
         self._ignore_can_send_error = False
 
-        if 'keygen' in kwargs and kwargs['keygen'] is not None:
-            self._key_generation_fcn = kwargs['keygen']
-
-        if 'ignoreCanSendError' in kwargs and kwargs['ignoreCanSendError'] is not None:
-            self._ignore_can_send_error = kwargs['ignoreCanSendError']
+        self._key_generation_fcn = kwargs.get('keygen')
+        self._ignore_can_send_error = kwargs.get('ignoreCanSendError')
 
         if broadcast:
             self.node_queue_list = [(None,  self)]  # Start with default logger Queue which will receive everything
@@ -461,6 +462,9 @@ class Bus(BusABC):
         pdu.radix = 16
 
         logger.info("PI02: arbitration_id.pgn.value == 0x%04x" % arbitration_id.pgn.value)
+        logger.info("PI02a: arbitration_id.pgn.value = {}".format(arbitration_id.pgn.value))
+        logger.info("PI02b: PGN_TP_SEED_REQUEST = {}".format(PGN_TP_SEED_REQUEST)) 
+        logger.info("PI02c: self._key_generation_fcn = {}".format(self._key_generation_fcn)) 
 
         if arbitration_id.pgn.value == PGN_TP_CONNECTION_MANAGEMENT:
             logger.info("PGN_TP_CONNECTION_MANAGEMENT")
@@ -688,7 +692,7 @@ class Bus(BusABC):
     def _process_cts(self, msg):
         logger.debug("_process_cts")
         logger.debug("MIL8: cts message is: %s" % msg)
-        logger.debug("MIL8:    len(pdu-send-buffer) = %d" % len(self._incomplete_transmitted_pdus[0][23]))
+        #logger.debug("MIL8:    len(pdu-send-buffer) = %d" % len(self._incomplete_transmitted_pdus[0][23]))
 
 
         if msg.arbitration_id.pgn.pdu_specific in self._incomplete_transmitted_pdus:

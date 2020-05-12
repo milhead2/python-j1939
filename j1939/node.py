@@ -54,7 +54,7 @@ class Node(Listener):
         return self.known_node_addresses[self.node_name.value]
 
     @property
-    def address(self):
+    def addressList(self):
         return self.address_list
 
     def start_address_claim(self):
