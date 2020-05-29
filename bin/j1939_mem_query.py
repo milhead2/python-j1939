@@ -77,9 +77,9 @@ def getStringVal(s):
 
 if __name__ == "__main__":
 
-    #lLevel = logging.WARN
-    #jlogger = logging.getLogger("j1939")
-    #jlogger.setLevel(lLevel)
+    lLevel = logging.WARN
+    jlogger = logging.getLogger("j1939")
+    jlogger.setLevel(lLevel)
     #ch = logging.StreamHandler()
     #jlogger.addHandler(ch)
 

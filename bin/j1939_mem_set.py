@@ -7,12 +7,19 @@ __date__ = "02/27/2018"
 __exp__ = "()"  # (Release Version)
 title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
-
-
 import j1939.utils
 
 
 if __name__ == "__main__":
+    import logging
+    import timeit
+    import argparse
+
+    lLevel = logging.WARN
+    jlogger = logging.getLogger("j1939")
+    jlogger.setLevel(lLevel)    
+    clogger = logging.getLogger("can")
+    clogger.setLevel(lLevel)    
 
     examples = """
 examples:
@@ -30,11 +37,9 @@ examples:
 
 """
 
-    import timeit
-    import argparse
 
-    import logging
-    import logging.handlers
+    #import logging
+    #import logging.handlers
 
     parser = argparse.ArgumentParser(description=title, formatter_class=argparse.RawDescriptionHelpFormatter, epilog=examples)
 

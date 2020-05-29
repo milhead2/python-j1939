@@ -66,8 +66,9 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     logger.info("## length=%d, value=%s " % (length, value))
     if isinstance(value, int) and length < 8:
         if length < 8:
+            sendBuffer[0] = length
             for i in range(0, length):
-                sendBuffer[i] = (value >> (8*i)) & 0xff
+                sendBuffer[i+1] = (value >> (8*i)) & 0xff
         else:
             raise ValueError("Don't know how to send a %d byte integer" % length)
 
