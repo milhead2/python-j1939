@@ -52,6 +52,8 @@ chformatter = logging.Formatter('%(name)25s | %(threadName)10s | %(levelname)5s 
 ch.setFormatter(chformatter)
 #logger.addHandler(ch)
 
+__version__ = "1.0.0"
+
 if 1:
     fileHandler = logging.handlers.RotatingFileHandler(os.path.join(tempfile.gettempdir(), \
                                                        'j1939.log'), \
