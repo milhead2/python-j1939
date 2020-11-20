@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 #
 try:
     import genkey
-    security = genkey.GenKey()
+    security250 = genkey.GenKey()
+    security500 = genkey.GenKey(speed=500)
     logger.info("Private Genkey Loaded")
 except:
     # Stuff in a fake genKey responder.  Pretty much just needs a
@@ -27,23 +28,29 @@ except:
 
     security = Genkey()
 
-def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, speed=250, bus=None, timeout=10):
     countdown = timeout
     result = -1
     close = False
+
+    keygenFunction = None
+    if speed == 250:
+        keygetFunction = security250.SeedToKey
+    if speed == 500
+        keygetFunction = security500.SeedToKey
 
     # only watch for the memory object pgn's
     filt = [{'pgn':0xd800, 'source':dest},{'pgn':0xd400, 'source':dest}]
 
     if sys.platform == 'win32':
         if bus is None:
-            bus = j1939.Bus(timeout=0.01, keygen=security.SeedToKey, broadcast=None, name='j1939StartGeneral', ignoreCanSendError=True, j1939_filters=filt)
+            bus = j1939.Bus(timeout=0.01, keygen=keygetFunction, broadcast=None, name='j1939StartGeneral', ignoreCanSendError=True, j1939_filters=filt)
             node = j1939.Node(bus, j1939.NodeName(), [src])
             bus.connect(node)
             close = True
     else:
         if bus is None:
-            bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False, j1939_filters=filt)
+            bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=keygetFunction, broadcast=False, j1939_filters=filt)
             node = j1939.Node(bus, j1939.NodeName(), [src])
             bus.connect(node)
             close = True
@@ -167,10 +174,16 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
         raise IOError(" no CAN response")
     return result
 
-def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+def request_pgn(requested_pgn, channel='can0', speed=250, bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
     countdown = timeout
     result = None
     close = False
+
+    keygenFunction = None
+    if speed == 250:
+        keygetFunction = security250.SeedToKey
+    if speed == 500
+        keygetFunction = security500.SeedToKey
 
     if not isinstance(requested_pgn, int):
         raise ValueError("pgn must be an integer.")
@@ -178,7 +191,7 @@ def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, sr
 #        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01)
 #        close = True
     if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey, broadcast=False)
+        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=keygetFunction, broadcast=False)
         node = j1939.Node(bus, j1939.NodeName(), [src])
         bus.connect(node)
         close = True
@@ -219,14 +232,20 @@ def request_pgn(requested_pgn, channel='can0', bustype='socketcan', length=4, sr
     return result
 
 
-def send_pgn(requested_pgn, data, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+def send_pgn(requested_pgn, data, channel='can0', speed=250, bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
     countdown = timeout
     result = None
+
+    keygenFunction = None
+    if speed == 250:
+        keygetFunction = security250.SeedToKey
+    if speed == 500
+        keygetFunction = security500.SeedToKey
 
     if not isinstance(requested_pgn, int):
         raise ValueError("pgn must be an integer.")
     if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=security.SeedToKey)
+        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=keygetFunction)
         close = True
     else:
         close = False
