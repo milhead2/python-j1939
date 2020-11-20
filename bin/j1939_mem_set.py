@@ -41,6 +41,7 @@ examples:
     parser.add_argument("-l", "--length", default="1", help="number of bytes in the object (1-4) default=1")
     parser.add_argument("-s", "--source", default="0", help="source address (0-254) default=0")
     parser.add_argument("-d", "--destination", default="0x17", help="destination address (0-254) default=17")
+    parser.add_argument("-c", "--channel", default="can0", help="Generally can0 on workstations or can1 on bbb/pbb targets")
 
     parser.add_argument("extension",
                   default=None,
@@ -80,6 +81,6 @@ examples:
     # queries a couple objects but setting up the full stack and bus for
     # each takes a long time.
     start = timeit.default_timer()
-    val = j1939.utils.set_mem_object(ptr, ext, value, length=length, src=src, dest=dest)
+    val = j1939.utils.set_mem_object(ptr, ext, value, channel=args.channel, length=length, src=src, dest=dest)
     #set_mem_object_single(length=1, src=0, dest=0x17, pointer=0x66, extension=0xea, value=127)
     print("elapsed = %s s" % (timeit.default_timer() - start))
