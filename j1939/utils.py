@@ -14,14 +14,14 @@ logger = logging.getLogger(__name__)
 #
 try:
     import genkey
-    security250 = genkey.GenKey()
+    security250 = genkey.GenKey(speed=250)
     security500 = genkey.GenKey(speed=500)
     logger.info("Private Genkey Loaded")
 except:
     # Stuff in a fake genKey responder.  Pretty much just needs a
     # reference to any class that can convert a Seed to a Key..  For
     # obvious reasons I'm not posting mine
-    logger.info("Genkey Not loaded, This one will generate garbage keys")
+    logger.warning("Genkey Not loaded, This one will generate garbage keys")
     class Genkey:
         def SeedToKey(self, seed):
             return 0x12345678
@@ -33,11 +33,21 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     result = -1
     close = False
 
-    keygenFunction = None
-    if speed == 250:
+    #print("------------------------------- Set Mem Object: speed={}, security250={}, security500={}".format(speed, security250, security500))
+
+    keygetFunction = None
+
+    if int(speed) == 250:
         keygetFunction = security250.SeedToKey
-    if speed == 500
+        #print("PI02f speed=500, keygetFunction={}".format(keygetFunction))
+    elif int(speed) == 500:
         keygetFunction = security500.SeedToKey
+        #print("PI02f speed=500, keygetFunction={}".format(keygetFunction))
+    else:
+        #print("PI02f speed=Unknown, keygetFunction={}".format(keygetFunction))
+        pass
+
+    print("------------------------------- keygetFunction={}".format(keygetFunction))
 
     # only watch for the memory object pgn's
     filt = [{'pgn':0xd800, 'source':dest},{'pgn':0xd400, 'source':dest}]
@@ -179,10 +189,10 @@ def request_pgn(requested_pgn, channel='can0', speed=250, bustype='socketcan', l
     result = None
     close = False
 
-    keygenFunction = None
+    keygetFunction = None
     if speed == 250:
         keygetFunction = security250.SeedToKey
-    if speed == 500
+    if speed == 500:
         keygetFunction = security500.SeedToKey
 
     if not isinstance(requested_pgn, int):
@@ -236,10 +246,10 @@ def send_pgn(requested_pgn, data, channel='can0', speed=250, bustype='socketcan'
     countdown = timeout
     result = None
 
-    keygenFunction = None
+    keygetFunction = None
     if speed == 250:
         keygetFunction = security250.SeedToKey
-    if speed == 500
+    if speed == 500:
         keygetFunction = security500.SeedToKey
 
     if not isinstance(requested_pgn, int):

@@ -7,6 +7,7 @@ __date__ = "02/27/2018"
 __exp__ = "()"  # (Release Version)
 title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
+import genkey
 import j1939.utils
 
 
@@ -14,12 +15,6 @@ if __name__ == "__main__":
     import logging
     import timeit
     import argparse
-
-    lLevel = logging.WARN
-    jlogger = logging.getLogger("j1939")
-    jlogger.setLevel(lLevel)    
-    clogger = logging.getLogger("can")
-    clogger.setLevel(lLevel)    
 
     examples = """
 examples:
@@ -47,6 +42,8 @@ examples:
     parser.add_argument("-s", "--source", default="0", help="source address (0-254) default=0")
     parser.add_argument("-d", "--destination", default="0x17", help="destination address (0-254) default=17")
     parser.add_argument("-c", "--channel", default="can0", help="Generally can0 on workstations or can1 on bbb/pbb targets")
+    parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Generate debugging output")
+    parser.add_argument("--speed", default=250, help="CAN baudrate 250 or 500, (default 250)")
 
     parser.add_argument("extension",
                   default=None,
@@ -62,6 +59,18 @@ examples:
                   help="numeric or string value, if not a single byte, be sure to specify length.")
 
     args = parser.parse_args()
+
+    if args.verbose:
+        lLevel = logging.DEBUG
+    else:
+        lLevel = logging.WARN
+
+    jlogger = logging.getLogger("j1939")
+    jlogger.setLevel(lLevel)    
+    ulogger = logging.getLogger("utils")
+    ulogger.setLevel(lLevel)    
+    clogger = logging.getLogger("can")
+    clogger.setLevel(lLevel)    
 
     length = int(args.length,0)
     src = int(args.source,0)
@@ -86,6 +95,6 @@ examples:
     # queries a couple objects but setting up the full stack and bus for
     # each takes a long time.
     start = timeit.default_timer()
-    val = j1939.utils.set_mem_object(ptr, ext, value, channel=args.channel, length=length, src=src, dest=dest)
+    val = j1939.utils.set_mem_object(ptr, ext, value, speed=args.speed, channel=args.channel, length=length, src=src, dest=dest)
     #set_mem_object_single(length=1, src=0, dest=0x17, pointer=0x66, extension=0xea, value=127)
     print("elapsed = %s s" % (timeit.default_timer() - start))

@@ -41,10 +41,11 @@ from j1939.nodename import NodeName
 from j1939.arbitrationid import ArbitrationID
 from j1939.utils import *
 
-logger = logging.getLogger("j1939")
-logger.setLevel(logging.WARNING)
+lLevel = logging.WARNING
 
-lLevel = logging.DEBUG
+logger = logging.getLogger("j1939")
+logger.setLevel(lLevel)
+
 logger.setLevel(lLevel)
 ch = logging.StreamHandler()
 ch.setLevel(lLevel)
@@ -113,6 +114,9 @@ class Bus(BusABC):
         self._ignore_can_send_error = False
 
         self._key_generation_fcn = kwargs.get('keygen')
+        logger.debug("----PI01d: self._key_generation_fcn={}".format(self._key_generation_fcn))
+
+
         self._ignore_can_send_error = kwargs.get('ignoreCanSendError')
 
         if broadcast:
@@ -457,10 +461,10 @@ class Bus(BusABC):
         pdu.info_strings = []
         pdu.radix = 16
 
-        logger.info("PI02: arbitration_id.pgn.value == 0x%04x" % arbitration_id.pgn.value)
-        logger.info("PI02a: arbitration_id.pgn.value = {}".format(arbitration_id.pgn.value))
-        logger.info("PI02b: PGN_TP_SEED_REQUEST = {}".format(PGN_TP_SEED_REQUEST)) 
-        logger.info("PI02c: self._key_generation_fcn = {}".format(self._key_generation_fcn)) 
+        logger.debug("PI02a: arbitration_id.pgn.value = 0x{:04x} ({})".format(arbitration_id.pgn.value, arbitration_id.pgn.value))
+        logger.debug("PI02b: PGN_TP_SEED_REQUEST = {}".format(PGN_TP_SEED_REQUEST)) 
+
+        logger.debug("PI02c: self._key_generation_fcn = {}".format(self._key_generation_fcn)) 
 
         if arbitration_id.pgn.value == PGN_TP_CONNECTION_MANAGEMENT:
             logger.info("PGN_TP_CONNECTION_MANAGEMENT")

@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     logger = logging.getLogger("j1939")
     ch = logging.StreamHandler()
-    ch.setLevel(logging.WARNING)
+    ch.setLevel(logging.warning)
     logger.addHandler(ch)
 
     parser = argparse.ArgumentParser(description='''\
