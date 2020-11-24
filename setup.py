@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 __version__ = "0.1.0-alpha.3"
 
-logging.basicConfig(level=logging.warning)
+logging.basicConfig(level=logging.WARNING)
 
 setup(
     name="python-j1939",

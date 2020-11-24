@@ -12,7 +12,7 @@ import can
 import j1939
 import logging
 
-lLevel = logging.warning
+lLevel = logging.WARNING
 
 logger = logging.getLogger()
 logger.setLevel(lLevel)
