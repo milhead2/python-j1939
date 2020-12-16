@@ -137,7 +137,7 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
         bus.shutdown()
     return result
 
-def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):
+def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, speed=250, timeout=10):
     countdown = timeout
     result = None
     close = False

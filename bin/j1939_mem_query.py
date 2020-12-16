@@ -101,6 +101,10 @@ if __name__ == "__main__":
                       default="0x17",
                       help="CAN destination, default is 0x17")
 
+    parser.add_argument("--speed",
+                      default="250",
+                      help="CAN bitrate {250|500}, default is 250")
+
     parser.add_argument("-l", "--length",
                       default="4",
                       help="length in bytes (default: 4)")
@@ -158,10 +162,11 @@ if __name__ == "__main__":
         ptr = getStringVal(args.pointer)
         length = getStringVal(args.length)
         ext = getStringVal(args.extension)
+        speed = getStringVal(args.speed)
         channel = args.channel
         print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
-        val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel)
+        val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel, speed=speed)
         print(val)
         out = ''
         if isinstance(val, list):
