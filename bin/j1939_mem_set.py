@@ -7,6 +7,7 @@ __date__ = "02/27/2018"
 __exp__ = "()"  # (Release Version)
 title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
+import sys
 import genkey
 import j1939.utils
 
@@ -30,6 +31,11 @@ examples:
     # Set B1/C4 Odometer to 200km (200=1km)
     $ python j1939_mem_set.py --destination=0x17 --length=4 0xf1 0x00 20000
 
+    # Write 7 bytes of Backlight Settings.  Note the array has to have no spaces
+    $ python j1939_mem_set.py -d 0x17 0xe9 0x01 [0x85,0x00,0x00,0x20,0x01,0x80,0x69]
+    #                                  ptr  off  b0   b1   b2   b3   b4   b5   b6 
+
+
 """
 
 
@@ -39,6 +45,7 @@ examples:
     parser = argparse.ArgumentParser(description=title, formatter_class=argparse.RawDescriptionHelpFormatter, epilog=examples)
 
     parser.add_argument("-l", "--length", default="1", help="number of bytes in the object (1-4) default=1")
+    parser.add_argument("-t", "--timeout", default="1000", help="ms before the request times out (default=1000 or 1s)")
     parser.add_argument("-s", "--source", default="0", help="source address (0-254) default=0")
     parser.add_argument("-d", "--destination", default="0x17", help="destination address (0-254) default=17")
     parser.add_argument("-c", "--channel", default="can0", help="Generally can0 on workstations or can1 on bbb/pbb targets")
@@ -77,24 +84,39 @@ examples:
     dest = int(args.destination,0)
     ext = int(args.extension,0)
     ptr = int(args.pointer,0)
+    timeout = int(args.timeout,0)
     value = args.value
 
     # 
-    # Try first to pull out a numeric argument, otherwise set it as a string.
+    # Try first to pull out a numeric ir byte list argument, otherwise set it as a string.
     # 
     try:
-        value = int(args.value,0)
-        print("Attepting to set %2X/%02X to %s" % (ext, ptr, value))
+        if args.value.startswith('['):
+            print ("processing array")
+            ar = args.value[1:-1]
+            print ("array = {}".format(ar))
+            elements = ar.split(',')
+            print ("elements = {}".format(elements))
+            value = [int(s,0) for s in elements]
+            print ("elements = {}".format(elements))
+            length = len(value)
+
+        else:
+            value = int(args.value,0)
+
     except ValueError:
         if length < len(value):
             length = len(value)
 
+    print("Attepting to set 0x{:02x}/0x{:02x} to {}, dlc={}".format(ext, ptr, value, len(value)))
 
     #value = hex(int(args.value,0))
 
     # queries a couple objects but setting up the full stack and bus for
     # each takes a long time.
     start = timeit.default_timer()
-    val = j1939.utils.set_mem_object(ptr, ext, value, speed=args.speed, channel=args.channel, length=length, src=src, dest=dest)
+    val = j1939.utils.set_mem_object(ptr, ext, value, speed=args.speed, channel=args.channel, length=length, src=src, dest=dest, timeout=timeout)
     #set_mem_object_single(length=1, src=0, dest=0x17, pointer=0x66, extension=0xea, value=127)
     print("elapsed = %s s" % (timeit.default_timer() - start))
+    print("return val = {}".format(int(val!=1)))
+    sys.exit(val!=1)

@@ -76,46 +76,52 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     bus.send(dm14pdu)
 
     sendBuffer = []
-    sendBuffer.append(length)
-    for i in range(0, length):
-        sendBuffer.append(0)
+    #sendBuffer.append(length)
+    #for i in range(0, length):
+    #    sendBuffer.append(0)
 
-    logger.info("## length=%d, value=%s " % (length, value))
+    logger.info("---------------## length=%d, value=%s " % (length, value))
     if isinstance(value, int) and length < 8:
+        logger.info("-----value")
         if length < 8:
             sendBuffer[0] = length
             for i in range(0, length):
-                sendBuffer[i+1] = (value >> (8*i)) & 0xff
+                sendBuffer.append((value >> (8*i)) & 0xff)
         else:
             raise ValueError("Don't know how to send a %d byte integer" % length)
 
     elif isinstance(value, list):
+        # if sending a list use the exact list elements as the data
+        logger.info("-----list of {} byte(s)".format(len(value)))
+        sendBuffer.append(len(value))
         for i in range(len(value)):
-            sendBuffer[i+1] = value[i]
+            logger.info("---------------## b[{}]=0x{:02x}".format(i, value[i]))
+            sendBuffer.append(value[i])
 
     elif isinstance(value, str):
+        logger.info("-----str")
         assert(len(value) <= length)
         sendBuffer[0] = length+1
         for i in range(len(value)):
-            sendBuffer[i+1] = ord(value[i])
+            sendBuffer.append(ord(value[i]))
 
     else:
         raise ValueError("Data type not supported.")
 
-    logger.info("## sendBuffer=%s ", sendBuffer)
+    logger.info("---------------## sendBuffer=%s ", sendBuffer)
 
     dm16pgn = j1939.PGN(pdu_format=0xd7, pdu_specific=dest)
     dm16aid = j1939.ArbitrationID(pgn=dm16pgn, source_address=src, destination_address=dest)
     dm16pdu = j1939.PDU(timestamp=0.0, arbitration_id=dm16aid, data=sendBuffer)
     dm16pdu.display_radix='hex'
 
-    logger.info("## PDU=%s ", dm16pdu)
+    logger.info("----------------## PDU=%s ", dm16pdu)
 
     # Wait around for a while looking for the second proceed
     proceedCount = 0
     while countdown:
         countdown -= 1
-        rcvPdu = bus.recv(2)
+        rcvPdu = bus.recv(timeout=0.25)
         if rcvPdu:
             rcvPdu.display_radix='hex'
             logger.debug("received PDU: %s", rcvPdu)
