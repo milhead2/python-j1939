@@ -84,7 +84,7 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     if isinstance(value, int) and length < 8:
         logger.info("-----value")
         if length < 8:
-            sendBuffer[0] = length
+            sendBuffer.append(length)
             for i in range(0, length):
                 sendBuffer.append((value >> (8*i)) & 0xff)
         else:
@@ -101,7 +101,7 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     elif isinstance(value, str):
         logger.info("-----str")
         assert(len(value) <= length)
-        sendBuffer[0] = length+1
+        sendBuffer.append(length+1)
         for i in range(len(value)):
             sendBuffer.append(ord(value[i]))
 
