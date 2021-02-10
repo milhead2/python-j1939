@@ -99,7 +99,7 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
             sendBuffer.append(value[i])
 
     elif isinstance(value, str):
-        logger.info("-----str")
+        logger.info("-----str, value={}, len(value)={}. length={}".format(value, len(value), length))
         assert(len(value) <= length)
         sendBuffer.append(length+1)
         for i in range(len(value)):

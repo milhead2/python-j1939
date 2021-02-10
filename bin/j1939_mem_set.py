@@ -50,7 +50,8 @@ examples:
     parser.add_argument("-d", "--destination", default="0x17", help="destination address (0-254) default=17")
     parser.add_argument("-c", "--channel", default="can0", help="Generally can0 on workstations or can1 on bbb/pbb targets")
     parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Generate debugging output")
-    parser.add_argument("--speed", default=250, help="CAN baudrate 250 or 500, (default 250)")
+    parser.add_argument(      "--string", action="store_true", default=False, help="Treat an integer parameter as a string")
+    parser.add_argument(      "--speed", default=250, help="CAN baudrate 250 or 500, (default 250)")
 
     parser.add_argument("extension",
                   default=None,
@@ -91,7 +92,11 @@ examples:
     # Try first to pull out a numeric ir byte list argument, otherwise set it as a string.
     # 
     try:
-        if args.value.startswith('['):
+        if args.string:
+            value = args.value
+            length = len(value)
+            print("Attepting to set 0x{:02x}/0x{:02x} to string {}, dlc={}".format(ext, ptr, value, len(value)))
+        elif args.value.startswith('['):
             print ("processing array")
             ar = args.value[1:-1]
             print ("array = {}".format(ar))
@@ -100,15 +105,15 @@ examples:
             value = [int(s,0) for s in elements]
             print ("elements = {}".format(elements))
             length = len(value)
-
+            print("Attepting to set 0x{:02x}/0x{:02x} to {}, dlc={}".format(ext, ptr, value, len(value)))
         else:
             value = int(args.value,0)
+            print("Attepting to set 0x{:02x}/0x{:02x} to {}, dlc={}".format(ext, ptr, value, len(value)))
 
     except ValueError:
         if length < len(value):
             length = len(value)
 
-    print("Attepting to set 0x{:02x}/0x{:02x} to {}, dlc={}".format(ext, ptr, value, len(value)))
 
     #value = hex(int(args.value,0))
 
