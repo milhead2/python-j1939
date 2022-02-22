@@ -118,7 +118,6 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     logger.info("----------------## PDU=%s ", dm16pdu)
 
     # Wait around for a while looking for the second proceed
-    proceedCount = 0
     while countdown:
         countdown -= 1
         rcvPdu = bus.recv(timeout=0.25)
@@ -127,8 +126,7 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
             logger.debug("received PDU: %s", rcvPdu)
             if rcvPdu.pgn == 0xd800:
                 if rcvPdu.data[0]==1 and rcvPdu.data[1]==0x11:
-                    proceedCount += 1
-                    if proceedCount == 2:
+                    if rcvPdu.data[6] == 0xff and rcvPdu.data[7] == 0xff:
                         bus.send(dm16pdu)
                         logger.info('Sent %s', dm16pdu)
                 elif rcvPdu.data[0]==0 and rcvPdu.data[1]==0x19:
