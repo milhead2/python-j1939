@@ -33,21 +33,21 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     result = -1
     close = False
 
-    #print("------------------------------- Set Mem Object: speed={}, security250={}, security500={}".format(speed, security250, security500))
+    logger.debug("------------------------------- Set Mem Object: speed={}, security250={}, security500={}".format(speed, security250, security500))
 
     keygetFunction = None
 
     if int(speed) == 250:
         keygetFunction = security250.SeedToKey
-        #print("PI02f speed=500, keygetFunction={}".format(keygetFunction))
+        logger.debug("PI02f speed=500, keygetFunction={}".format(keygetFunction))
     elif int(speed) == 500:
         keygetFunction = security500.SeedToKey
-        #print("PI02f speed=500, keygetFunction={}".format(keygetFunction))
+        logger.debug("PI02f speed=500, keygetFunction={}".format(keygetFunction))
     else:
-        #print("PI02f speed=Unknown, keygetFunction={}".format(keygetFunction))
+        logger.debug("PI02f speed=Unknown, keygetFunction={}".format(keygetFunction))
         pass
 
-    print("------------------------------- keygetFunction={}".format(keygetFunction))
+    logger.debug("------------------------------- keygetFunction={}".format(keygetFunction))
 
     # only watch for the memory object pgn's
     filt = [{'pgn':0xd800, 'source':dest},{'pgn':0xd400, 'source':dest}]

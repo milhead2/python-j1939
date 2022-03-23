@@ -175,7 +175,7 @@ class PDU(object):
         :return: A string representation of this message.
 
         """
-        #logger.info("PI07: stringify PDU")
+        logger.debug("PI07: stringify PDU")
 
         if self.radix == RADIX_HEX:
             data_string = " ".join("{:02x}".format(byte) for byte in self.data)

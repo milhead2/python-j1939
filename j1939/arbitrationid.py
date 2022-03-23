@@ -59,26 +59,30 @@ class ArbitrationID(object):
 
     @property
     def can_id(self):
-        logger.debug("can_id property: self._pgn.is_destination_specific=%s\npgn=%s" % (self._pgn.is_destination_specific, self._pgn))
+        logger.debug("can_id property: self._pgn.is_destination_specific={}/pgn={}".format(self._pgn.is_destination_specific, self._pgn))
 
         if self._pgn.is_destination_specific:
-            logger.debug("can_id: self._pgn.is_destination_specific, dest=%s, pgn_value=%s, pdu_format=0x%x, pdu_specific=0x%x, pri=%s" %
-                    (self.destination_address_value,
+            logger.debug("can_id: self._pgn.is_destination_specific, dest={}, pgn_value={}, pdu_format=0x{:04x}, pdu_specific=0x{:02x}, pri={}".format(
+                    self.destination_address_value,
                     self._pgn.value,
                     self._pgn.pdu_format,
                     self._pgn.pdu_specific,
                     self.priority))
 
             if self.destination_address_value:
+                logger.debug("can_id: self.destination_address_value: pgn_value: {:04x}".format(self._pgn.value))
+                logger.debug("         (self._pgn.value & 0x3ff00): {:04x}".format((self._pgn.value & 0x3ff00)))
+                logger.debug("         (self.destination_address_value): {:04x}".format((self.destination_address_value)))
                 retval = (self.source_address +
-                         ((self._pgn.value & 0xff00) + (self.destination_address_value) << 8)+
+                         ((self._pgn.value & 0x3ff00) + (self.destination_address_value) << 8) +
                          (self.priority << 26))
             else:
+                logger.debug("can_id: NOT self.destination_address_value:")
                 retval = (self.source_address +
-                         ((self._pgn.value & 0xff00) << 8)+
+                         ((self._pgn.value & 0x3ff00) << 8)+
                          (self.priority << 26))
 
-            logger.debug("can_id: retval=0x%08x" % (retval))
+            logger.debug("can_id: retval=0x{:08x}".format(retval))
             return retval
         else:
             logger.debug("can_id: NOT! self._pgn.is_destination_specific")
@@ -94,7 +98,7 @@ class ArbitrationID(object):
         self._pgn = PGN().from_can_id(canid)
         self.source_address = canid & 0x000000FF
         if self._pgn.is_destination_specific:
-            self.destination_address_value = (canid & 0x0000FF00) >> 8
+            self.destination_address_value = (canid & 0x0003FF00) >> 8
 
 
         logger.debug("can_id: canid=0x%08x, priority=%x, pdu_format=%x, pdu_specific=%x, src=%x" %

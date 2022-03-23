@@ -1,4 +1,5 @@
 import threading
+import logging
 try:
     import queue
 except ImportError:
@@ -10,6 +11,8 @@ import socket
 
 #same as a CAN Notifier but will listen to a queue
 #recv function.
+
+logger = logging.getLogger(__name__)
 
 class Notifier(object):
 
@@ -59,6 +62,7 @@ class CanNotifier(canNotifier):
                         for callback in self.listeners:
                             callback(msg)
                 msg = bus.recv(self.timeout)
+                logger.debug('CanNotifier: {}\n'.format(msg))
 
         # 
         # The next two handlers are intended to mask race conditions that can occur when 

@@ -260,7 +260,7 @@ class Bus(BusABC):
         #                  listener.on_error_received(rx_error)
 
     def send(self, msg, timeout=None):
-        logger.info("j1939.send: msg=%s" % msg)
+        logger.info("j1939.send: msg={}".format(msg))
         messages = []
         if len(msg.data) > 8:
             logger.info("j1939.send: message is > than 8 bytes")
@@ -269,7 +269,7 @@ class Bus(BusABC):
             pdu = copy.deepcopy(msg)
             pdu.data = bytearray(pdu.data)
 
-            logger.info("j1939.send: Copied msg = %s" % pdu)
+            logger.info("j1939.send: Copied msg = {}".format(pdu))
             pdu_length_lsb, pdu_length_msb = divmod(len(pdu.data), 256)
 
             while len(pdu.data) % 7 != 0:
@@ -307,9 +307,7 @@ class Bus(BusABC):
             #
             # At this point we have the queued messages sequenced in 'messages'
             #
-            logger.info("MIL8: j1939.send: is_destination_specific=%d, destAddr=%s" % 
-                            (pdu.arbitration_id.pgn.is_destination_specific, 
-                             pdu.arbitration_id.destination_address))
+            logger.info("MIL8: j1939.send: is_destination_specific={}, destAddr={}".format(pdu.arbitration_id.pgn.is_destination_specific, pdu.arbitration_id.destination_address))
             logger.info("MIL8: j1939.send: messages=%s" % messages)
            
             if pdu.arbitration_id.pgn.is_destination_specific and \
@@ -396,13 +394,13 @@ class Bus(BusABC):
                     self._long_message_segment_queue.put_nowait(message)
         else:
             msg.display_radix = 'hex'
-            logger.debug("j1939.send: calling can_bus_send: j1939-msg: %s" % (msg))
+            logger.debug("j1939.send: calling can_bus_send: j1939-msg: {}, arb-id: {:08x}".format(msg, msg.arbitration_id.can_id))
             can_message = Message(arbitration_id=msg.arbitration_id.can_id,
                                   extended_id=True,
                                   dlc=len(msg.data),
                                   data=msg.data)
 
-            logger.debug("j1939.send: calling can_bus_send: can-msg: %s" % can_message)
+            logger.debug("j1939.send: calling can_bus_send: can-msg: {}".format(can_message))
             try:
                 self.can_bus.send(can_message)
             except CanError:

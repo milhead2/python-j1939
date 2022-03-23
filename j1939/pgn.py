@@ -14,7 +14,12 @@ class PGN(object):
 
     @property
     def is_pdu1(self):
-        return ((self.pdu_format < 240) or self.reserved_flag or self.data_page_flag)
+        result =  (((self.pdu_format & 0xFF) < 240) or self.reserved_flag)
+        logger.debug("PGN is_pdu1 {:04x}: {}".format(self.pdu_format, result))
+        logger.debug("            (self.pdu_format & 0xFF) < 240 {:04x}: {}".format(self.pdu_format, (self.pdu_format & 0xFF) < 240))
+        logger.debug("            self.reserved_flag {:04x}: {}".format(self.pdu_format, self.reserved_flag))
+        logger.debug("            self.data_page_flag {:04x}: {}".format(self.pdu_format, self.data_page_flag))
+        return result
 
     @property
     def is_pdu2(self):
@@ -22,7 +27,9 @@ class PGN(object):
 
     @property
     def is_destination_specific(self):
-        return self.is_pdu1
+        result = self.is_pdu1
+        logger.debug("PGN is_destination_specific {:04x}: {}".format(self.value, result))
+        return result
 
     @property
     def value(self):
@@ -31,18 +38,19 @@ class PGN(object):
 
     @value.setter
     def value(self, value):
-        self.reserved_flag = (value & 0x020000) >> 17
-        self.data_page_flag = (value & 0x010000) >> 16
-        self.pdu_format = (value & 0x00FF00) >> 8
+        self.reserved_flag = (value & 0x080000) >> 17
+        self.data_page_flag = (value & 0x040000) >> 16
+        self.pdu_format = (value & 0x03FF00) >> 8
         self.pdu_specific = value & 0x0000FF
+        #MIL logger.debug("PGN.@valueSetter, value=0x%08x, pdu_format=0x%08x" % (value, self.pdu_format))
 
     @staticmethod
     def from_value(pgn_value):
         logger.debug("PGN.@from_value, pgn_value=0x%08x" % (pgn_value))
         pgn = PGN()
-        pgn.reserved_flag = (pgn_value & 0x020000) >> 17
-        pgn.data_page_flag = (pgn_value & 0x010000) >> 16
-        pgn.pdu_format = (pgn_value & 0x00FF00) >> 8
+        pgn.reserved_flag = (pgn_value & 0x080000) >> 17
+        pgn.data_page_flag = (pgn_value & 0x040000) >> 16
+        pgn.pdu_format = (pgn_value & 0x03FF00) >> 8
         pgn.pdu_specific = pgn_value & 0x0000FF
         return pgn
 
@@ -52,16 +60,16 @@ class PGN(object):
         canid = canid>>8
         pgn = PGN()
         #logger.debug("PGN.@from_can_id, value=0x%08x" % (canid))
-        pgn.reserved_flag = (canid & 0x020000) >> 17
-        pgn.data_page_flag = (canid & 0x010000) >> 16
-        pgn.pdu_format = (canid & 0x00FF00) >> 8
+        pgn.reserved_flag = (canid & 0x080000) >> 17
+        pgn.data_page_flag = (canid & 0x040000) >> 16
+        pgn.pdu_format = (canid & 0x03FF00) >> 8
         pgn.pdu_specific = canid & 0x0000FF
         logger.debug("PGN.@from_can_id, res=%d, dp=%d, pdu_format=0x%02x, pdu_specific=0x%02x" %
                 (pgn.reserved_flag, pgn.data_page_flag, pgn.pdu_format, pgn.pdu_specific))
         return pgn
 
     def __str__(self):
-        retval = ("0x%.4x " % ((((self.pdu_format)<<8) | (self.pdu_specific)) & 0xFFFF))
+        retval = ("0x%.5x " % ((((self.pdu_format)<<8) | (self.pdu_specific)) & 0x3FFFF))
 
         if self.reserved_flag:
             retval += "R "
