@@ -5,7 +5,7 @@ from .arbitrationid import ArbitrationID
 from .constants import pgn_strings, PGN_AC_ADDRESS_CLAIMED
 from .nodename import NodeName
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("j1939")
 
 RADIX_DECIMAL=10
 RADIX_HEX=16

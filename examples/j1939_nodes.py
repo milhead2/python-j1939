@@ -14,7 +14,7 @@ import logging
 
 lLevel = logging.WARNING
 
-logger = logging.getLogger()
+logger = logging.getLogger("j1939")
 logger.setLevel(lLevel)
 ch = logging.StreamHandler()
 fh = logging.FileHandler('/tmp/j1939_nodes.log')

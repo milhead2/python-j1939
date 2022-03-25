@@ -1,8 +1,7 @@
 import logging
-logger = logging.getLogger(__name__)
+import inspect
 
-
-
+logger = logging.getLogger("j1939")
 
 class PGN(object):
 
@@ -56,16 +55,20 @@ class PGN(object):
 
     @staticmethod
     def from_can_id(canid):
-        #logger.debug("PGN.@from_can_id, value=0x%08x" % (canid))
+        logger.info("{} staticmethod: canid=0x{:08x}".format(inspect.stack()[0][3], canid))
         canid = canid>>8
         pgn = PGN()
-        #logger.debug("PGN.@from_can_id, value=0x%08x" % (canid))
+        
         pgn.reserved_flag = (canid & 0x080000) >> 17
         pgn.data_page_flag = (canid & 0x040000) >> 16
         pgn.pdu_format = (canid & 0x03FF00) >> 8
         pgn.pdu_specific = canid & 0x0000FF
-        logger.debug("PGN.@from_can_id, res=%d, dp=%d, pdu_format=0x%02x, pdu_specific=0x%02x" %
-                (pgn.reserved_flag, pgn.data_page_flag, pgn.pdu_format, pgn.pdu_specific))
+        logger.info("{} staticmethod: PGN Creation, res={}, dp={}, pdu_format=0x{:02x}, pdu_specific=0x{:02x}".format(inspect.stack()[0][3],
+                pgn.reserved_flag, 
+                pgn.data_page_flag, 
+                pgn.pdu_format, 
+                pgn.pdu_specific))
+
         return pgn
 
     def __str__(self):

@@ -12,7 +12,7 @@ import socket
 #same as a CAN Notifier but will listen to a queue
 #recv function.
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("j1939")
 
 class Notifier(object):
 

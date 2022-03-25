@@ -1,15 +1,19 @@
-from __future__ import print_function
-
+#!/usr/bin/python3
+#
 
 _name = "J1939 Memory-Object Writer"
-__version__ = "1.0.1"
-__date__ = "02/27/2018"
+__version__ = "1.0.2"
+__date__ = "03/29/2021"
 __exp__ = "()"  # (Release Version)
 title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
 import sys
+MIN_PYTHON = (3, 5)
+if sys.version_info < MIN_PYTHON:
+    sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
 import genkey
 import j1939.utils
+
 
 
 if __name__ == "__main__":
@@ -19,6 +23,8 @@ if __name__ == "__main__":
 
     examples = """
 examples:
+    # NOTE:  if the CAN speed is 500 add --speed 500
+    #
     # write the characters 'ERASE' to extension E9 ponter ED
     $ python j1939_mem_set.py -d 0x17 0xe9 0xed ERASE
 
@@ -49,9 +55,13 @@ examples:
     parser.add_argument("-s", "--source", default="0", help="source address (0-254) default=0")
     parser.add_argument("-d", "--destination", default="0x17", help="destination address (0-254) default=17")
     parser.add_argument("-c", "--channel", default="can0", help="Generally can0 on workstations or can1 on bbb/pbb targets")
+    parser.add_argument("-r", "--robot", action="store_true", default=False, help="provide parsable result data to aid robot testing")
     parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Generate debugging output")
     parser.add_argument(      "--string", action="store_true", default=False, help="Treat an integer parameter as a string")
     parser.add_argument(      "--speed", default=250, help="CAN baudrate 250 or 500, (default 250)")
+    parser.add_argument("--log",
+                    default="WARNING",
+                    help="Set LogLevel to DEBUG|INFO|(WARNING)|ERROR|CRITICAL for this app, j1939 and can")
 
     parser.add_argument("extension",
                   default=None,
@@ -61,24 +71,28 @@ examples:
                   default=None,
                   help="Memory object pointer offset to request in decimal or 0xhex")
 
-
     parser.add_argument('value',
                   default=None,
                   help="numeric or string value, if not a single byte, be sure to specify length.")
 
     args = parser.parse_args()
 
-    if args.verbose:
-        lLevel = logging.DEBUG
-    else:
-        lLevel = logging.WARN
+    # assuming loglevel is bound to the string value obtained from the
+    # command line argument. Convert to upper case to allow the user to
+    # specify --log=DEBUG or --log=debug
+    numeric_level = getattr(logging, args.log.upper())
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: {}'.format(args.log))
+    logging.basicConfig(level=numeric_level)
 
-    jlogger = logging.getLogger("j1939")
-    jlogger.setLevel(lLevel)    
-    ulogger = logging.getLogger("utils")
-    ulogger.setLevel(lLevel)    
-    clogger = logging.getLogger("can")
-    clogger.setLevel(lLevel)    
+    logger = logging.getLogger("j1939")
+    logger.setLevel(numeric_level)
+
+    logger = logging.getLogger("can")
+    logger.setLevel(numeric_level)
+
+    if (args.pointer==None or args.extension==None or args.value==None):
+        raise ValueError("pointer, extension and value are required values!")
 
     length = int(args.length,0)
     src = int(args.source,0)
@@ -95,7 +109,7 @@ examples:
         if args.string:
             value = args.value
             length = len(value)
-            print("Attepting to set 0x{:02x}/0x{:02x} to string {}, dlc={}".format(ext, ptr, value, len(value)))
+            print("Attepting to set extension/pointer 0x{:x}/0x{:x} to string {}, dlc={}".format(ext, ptr, value, len(value)))
         elif args.value.startswith('['):
             print ("processing array")
             ar = args.value[1:-1]
@@ -105,15 +119,14 @@ examples:
             value = [int(s,0) for s in elements]
             print ("elements = {}".format(elements))
             length = len(value)
-            print("Attepting to set 0x{:02x}/0x{:02x} to {}, dlc={}".format(ext, ptr, value, len(value)))
+            print("Attepting to set extension/pointer 0x{:x}/0x{:x} to array {}, dlc={}".format(ext, ptr, value, len(value)))
         else:
             value = int(args.value,0)
-            print("Attepting to set 0x{:02x}/0x{:02x} to {}, dlc={}".format(ext, ptr, value, len(value)))
+            print("Attepting to set extension/pointer 0x{:x}/0x{:x} to integer {}, dlc={}".format(ext, ptr, value, length))
 
     except ValueError:
         if length < len(value):
             length = len(value)
-
 
     #value = hex(int(args.value,0))
 
@@ -124,4 +137,9 @@ examples:
     #set_mem_object_single(length=1, src=0, dest=0x17, pointer=0x66, extension=0xea, value=127)
     print("elapsed = %s s" % (timeit.default_timer() - start))
     print("return val = {}".format(int(val!=1)))
+    if args.robot:
+        if val!=1:
+            print("RESULT=FAIL")
+        else:
+            print("RESULT=SUCCESS")
     sys.exit(val!=1)

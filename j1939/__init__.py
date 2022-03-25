@@ -170,23 +170,25 @@ class Bus(BusABC):
     def notification(self, inboundMessage):
         #self.rx_can_message_queue.put(inboundMessage)
         if self.can_notifier._running is False:
-                logger.info('Aborting message %s bus is not running', inboundMessage)
+            logger.info('{}: Aborting message {} bus is not running'.format(inspect.stack()[0][3], inboundMessage))
+            # Should I return or throw exception here.
+
         if isinstance(inboundMessage, Message):
-            logger.info('\n\nnotification: Got a Message from CAN: %s' % inboundMessage)
+            logger.info('\n\n{}:  Got a Message from CAN: {}'.format(inspect.stack()[0][3],inboundMessage))
             if inboundMessage.id_type:
                 # Extended ID
                 # Only J1939 messages (i.e. 29-bit IDs) should go further than this point.
                 # Non-J1939 systems can co-exist with J1939 systems, but J1939 doesn't care
                 # about the content of their messages.
-                logger.debug('notification: Message is j1939 msg')
+                logger.info('{}: Message is j1939 msg'.format(inspect.stack()[0][3]))
 
                 #
-                # Need to determine if it's a broadcase message or
+                # Need to determine if it's a broadcast message or
                 # limit to listening nodes only
                 #
                 arbitration_id = ArbitrationID()
                 arbitration_id.can_id = inboundMessage.arbitration_id
-                logger.debug('notification: ArbitrationID = %s' % (arbitration_id))
+                logger.info("{}: ArbitrationID = {}, inboundMessage.arbitration_id: 0x{:08x}".format(inspect.stack()[0][3],arbitration_id, inboundMessage.arbitration_id))
 
                 for (node, l_notifier) in self.node_queue_list:
                     logger.debug("notification: node=%s" % (node))
@@ -197,24 +199,25 @@ class Bus(BusABC):
                     # redirect the AC stuff to the node processors. the rest can go
                     # to the main queue.
                     if node and (arbitration_id.pgn in [PGN_AC_ADDRESS_CLAIMED, PGN_AC_COMMANDED_ADDRESS, PGN_REQUEST_FOR_PGN]):
-                        logger.info("notification: sending to notifier queue")
+                        logger.info("{}: sending to notifier queue".format(inspect.stack()[0][3]))
                         # send the PDU to the node processor.
                         l_notifier.queue.put(inboundMessage)
 
                     # if node has the destination address, do something with the PDU
                     elif node and (arbitration_id.destination_address in node.address_list):
+                        logger.info("{}: sending to process_incoming_message".format(inspect.stack()[0][3]))
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         if rx_pdu:
                             logger.info("WP02: notification: sent to general queue: %s QQ=%s" % (rx_pdu, self.queue))
                             self.queue.put(rx_pdu)
                     elif node and (arbitration_id.destination_address is None):
-                        logger.info("notification: sending broadcast to general queue")
+                        logger.info("{}: sending broadcast to general queue".format(inspect.stack()[0][3]))
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         logger.info("WP01: notification: sent broadcast to general queue: %s QQ=%s" % (rx_pdu, self.queue))
                         self.queue.put(rx_pdu)
                     elif node is None:
                         # always send the message to the logging queue
-                        logger.info("notification: sending to general queue")
+                        logger.info("{}: sending to general queue".format(inspect.stack()[0][3]))
                         rx_pdu = self._process_incoming_message(inboundMessage)
                         logger.info("WP03: notification: sent pdu [%s] to general queue" % rx_pdu)
                         self.queue.put(rx_pdu)
@@ -450,7 +453,7 @@ class Bus(BusABC):
         return None
 
     def _process_incoming_message(self, msg):
-        logger.info("PI01: Processing incoming message: instance=%s\n  msg=  %s" % (self, msg))
+        logger.info("PI01: Processing incoming message: instance={}, msg=  {}".format(self, msg))
         arbitration_id = ArbitrationID()
         arbitration_id.can_id = msg.arbitration_id
         if arbitration_id.pgn.is_destination_specific:
@@ -476,7 +479,7 @@ class Bus(BusABC):
             logger.info("PGN_TP_SEED_REQUEST")
             retval = self._send_key_response(pdu)
         else:
-            logger.info("PGN_PDU")
+            logger.info("PGN_PDU generic")
             retval = pdu
 
         logger.info("_process_incoming_message: returning %s" % (retval))

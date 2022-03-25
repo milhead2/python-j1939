@@ -1,9 +1,11 @@
 import logging
+import inspect
+
 
 from j1939.pgn import PGN
 from j1939.constants import *
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("j1939")
 
 class ArbitrationID(object):
 
@@ -59,10 +61,10 @@ class ArbitrationID(object):
 
     @property
     def can_id(self):
-        logger.debug("can_id property: self._pgn.is_destination_specific={}/pgn={}".format(self._pgn.is_destination_specific, self._pgn))
+        logger.info("{} property: self._pgn.is_destination_specific={}/pgn={}".format(inspect.stack()[0][3], self._pgn.is_destination_specific, self._pgn))
 
         if self._pgn.is_destination_specific:
-            logger.debug("can_id: self._pgn.is_destination_specific, dest={}, pgn_value={}, pdu_format=0x{:04x}, pdu_specific=0x{:02x}, pri={}".format(
+            logger.info("can_id: self._pgn.is_destination_specific, dest={}, pgn_value={}, pdu_format=0x{:04x}, pdu_specific=0x{:02x}, pri={}".format(
                     self.destination_address_value,
                     self._pgn.value,
                     self._pgn.pdu_format,
@@ -70,22 +72,22 @@ class ArbitrationID(object):
                     self.priority))
 
             if self.destination_address_value:
-                logger.debug("can_id: self.destination_address_value: pgn_value: {:04x}".format(self._pgn.value))
-                logger.debug("         (self._pgn.value & 0x3ff00): {:04x}".format((self._pgn.value & 0x3ff00)))
-                logger.debug("         (self.destination_address_value): {:04x}".format((self.destination_address_value)))
+                logger.info("can_id: self.destination_address_value: pgn_value: {:04x}".format(self._pgn.value))
+                logger.info("         (self._pgn.value & 0x3ff00): {:04x}".format((self._pgn.value & 0x3ff00)))
+                logger.info("         (self.destination_address_value): {:04x}".format((self.destination_address_value)))
                 retval = (self.source_address +
                          ((self._pgn.value & 0x3ff00) + (self.destination_address_value) << 8) +
                          (self.priority << 26))
             else:
-                logger.debug("can_id: NOT self.destination_address_value:")
+                logger.info("can_id: NOT self.destination_address_value:")
                 retval = (self.source_address +
                          ((self._pgn.value & 0x3ff00) << 8)+
                          (self.priority << 26))
 
-            logger.debug("can_id: retval=0x{:08x}".format(retval))
+            logger.info("can_id: retval=0x{:08x}".format(retval))
             return retval
         else:
-            logger.debug("can_id: NOT! self._pgn.is_destination_specific")
+            logger.info("can_id: NOT! self._pgn.is_destination_specific")
             return (self.source_address + (self._pgn.value << 8) + (self.priority << 26))
 
     @can_id.setter
@@ -93,16 +95,16 @@ class ArbitrationID(object):
         """
         Int between 0 and (2**29) - 1
         """
-        logger.debug("can_id setter: canid=0x%08x" % (canid))
+        logger.info("{} setter: canid=0x{:08x}".format(inspect.stack()[0][3], canid))
         self.priority = (canid & 0x1C000000) >> 26
         self._pgn = PGN().from_can_id(canid)
         self.source_address = canid & 0x000000FF
         if self._pgn.is_destination_specific:
-            self.destination_address_value = (canid & 0x0003FF00) >> 8
+            self.destination_address_value = (canid & 0x0000FF00) >> 8
 
 
-        logger.debug("can_id: canid=0x%08x, priority=%x, pdu_format=%x, pdu_specific=%x, src=%x" %
-                (canid,
+        logger.info("{} setter: canid=0x{:08x}, priority={:x}, pdu_format={:x}, pdu_specific={:x}, src={:x}".format(inspect.stack()[0][3],
+                canid,
                 self.priority,
                 self._pgn.pdu_format,
                 self._pgn.pdu_specific,

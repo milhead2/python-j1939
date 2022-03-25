@@ -1,14 +1,11 @@
 import logging
 
-log = logging.getLogger('py1939.node')
-log.debug('Loading J1939 node')
-
 from can import Listener, CanError
 from j1939.constants import *
 from j1939.pdu import PDU
 from j1939.nodename import NodeName
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("j1939")
 logger.debug("loading %s", __name__)
 
 
@@ -58,11 +55,11 @@ class Node(Listener):
         return self.address_list
 
     def start_address_claim(self):
-        logging.debug("start_address_claim:")
+        logger.debug("start_address_claim:")
         self.claim_address(self.address_list[self._current_address_index])
 
     def claim_address(self, address):
-        logging.debug("claim_address:")
+        logger.debug("claim_address:")
         claimed_address_pdu = self._pdu_type()
         claimed_address_pdu.arbitration_id.pgn.value = PGN_AC_ADDRESS_CLAIMED
         claimed_address_pdu.arbitration_id.priority = 4
@@ -72,13 +69,12 @@ class Node(Listener):
 
         claimed_address_pdu.data = self.node_name.bytes
         self.known_node_addresses[self.node_name.value] = address
-        log.info('MIL:')
-        log.info('claimed_address_pdu: %s' % claimed_address_pdu)
+        logger.info('claimed_address_pdu: %s' % claimed_address_pdu)
         self.bus.send(claimed_address_pdu)
 
     def on_message_received(self, pdu):
         if pdu.pgn == PGN_AC_ADDRESS_CLAIMED:
-            log.debug('got PGN_AC_ADDRESS_CLAIMED pdu')
+            logger.debug('got PGN_AC_ADDRESS_CLAIMED pdu')
             if pdu.source != DESTINATION_ADDRESS_NULL:
                 if pdu.data != self.node_name.bytes:
                     if pdu.source != self.address:
@@ -101,7 +97,7 @@ class Node(Listener):
                 node_name.bytes = pdu.data
                 self.known_node_addresses[node_name.value] = pdu.source
         elif pdu.pgn == PGN_AC_COMMANDED_ADDRESS:
-            log.debug('got PGN_AC_COMMANDED_ADDRESS pdu')
+            logger.debug('got PGN_AC_COMMANDED_ADDRESS pdu')
             node_name = NodeName()
             node_name.bytes = pdu.data[:8]
             new_address = pdu.data[8]
@@ -109,7 +105,7 @@ class Node(Listener):
                 # if we are the commanded node change our address
                 self.claim_address(new_address)
         elif pdu.pgn == PGN_REQUEST_FOR_PGN:
-            log.debug('got PGN_REQUEST_FOR_PGN pdu')
+            logger.debug('got PGN_REQUEST_FOR_PGN pdu')
             pgn = int("%.2X%.2X%.2X" % (pdu.data[2], pdu.data[1], pdu.data[0]), 16)
             if pdu.destination in (self.address, DESTINATION_ADDRESS_GLOBAL):
                 if pgn == PGN_AC_ADDRESS_CLAIMED:
@@ -126,10 +122,10 @@ class Node(Listener):
         :param destination_device_name:
             Should be None, or an int between 0 and (2 ** 64) - 1
         """
-        log.debug('send_parameter_group:')
+        logger.debug('send_parameter_group:')
         # if we are *allowed* to send data
         if self.known_node_addresses[self.node_name.value] not in (ADDRESS_UNCLAIMED, DESTINATION_ADDRESS_NULL):
-            log.debug('send_parameter_group: claimed address')
+            logger.debug('send_parameter_group: claimed address')
             pdu = self._pdu_type()
             pdu.arbitration_id.pgn.value = pgn
             pdu.arbitration_id.source_address = self.known_node_addresses[self.node_name.value]

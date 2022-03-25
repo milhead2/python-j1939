@@ -1,9 +1,10 @@
 from __future__ import print_function
 import j1939
 import logging
+import inspect
 import sys
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("j1939")
 #
 # for responding to seed/key requests provide your own keyGenerator
 # class..
@@ -64,8 +65,12 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
             node = j1939.Node(bus, j1939.NodeName(), [src])
             bus.connect(node)
             close = True
+
+    pLow = pointer & 0x0000FF
+    pMid = (pointer >> 8) & 0x0000FF
+    pHigh = (pointer >> 16) & 0x0000FF
 			
-    dm14data = [length, 0x15, pointer, 0x00, 0x00, extension, 0xff, 0xff]
+    dm14data = [length, 0x15, pLow, pMid, pHigh, extension, 0xff, 0xff]
 
     dm14pgn = j1939.PGN(pdu_format=0xd9, pdu_specific=dest)
     dm14aid = j1939.ArbitrationID(pgn=dm14pgn, source_address=src, destination_address=dest)
@@ -142,6 +147,7 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     return result
 
 def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', length=4, src=0, dest=0x17, bus=None, speed=250, timeout=10):
+    logger.info("{}: begin".format(inspect.stack()[0][3]))
     countdown = timeout
     result = None
     close = False
@@ -151,6 +157,7 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
         node = j1939.Node(bus, j1939.NodeName(), [src])
         bus.connect(node)
         close = True
+
     pgn = j1939.PGN()
     pgn.value = 0xd900 + dest # Request a DM14 mem-object
     aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)
@@ -164,10 +171,16 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
     pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
     assert(pdu != None)
     pdu.display_radix='hex'
+    logger.info("{}: Sending Request PDU: {}".format(inspect.stack()[0][3], pdu))
     bus.send(pdu)
+
+    #
+    # Wait for the response
+    #
     while countdown:
         pdu = bus.recv(timeout=1)
         if pdu is not None:
+            logger.info("{}: Received PDU: {}".format(inspect.stack()[0][3], pdu))
             logger.info(pdu)
             if pdu.pgn == 0xd700:
                 value = list(pdu.data)
@@ -180,12 +193,21 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
                     result = (value[4] << 24) + (value[3] << 16) + (value[2] << 8) + value[1]
                 else:
                     result = value[1:]
+
+                #logger.info("{}: d700 received, result: {}/0x{:08x}".format(inspect.stack()[0][3], result, result))
+                
                 break # got what I was waiting for
+
         countdown -= 1
+
     if close:
+        logger.info("{}: Closing Bus".format(inspect.stack()[0][3]))
         bus.shutdown()
+
     if result is None:
         raise IOError(" no CAN response")
+
+
     return result
 
 def request_pgn(requested_pgn, channel='can0', speed=250, bustype='socketcan', length=4, src=0, dest=0x17, bus=None, timeout=10):

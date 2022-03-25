@@ -1,15 +1,18 @@
 #!/usr/bin/python
 #
-from __future__ import print_function
 
 _name = "Simple J1939 memory object query"
-__version__ = "1.0.0"
-__date__ = "12/20/2017"
-__exp__ = "(expirimental)"  # (Release Version)
+__version__ = "1.1.0"
+__date__ = "3/25/22"
+__exp__ = "()"  # (Release Version)
 title = "%s Version: %s %s %s" % (_name, __version__, __date__, __exp__)
 
-import j1939.utils
+import sys
+MIN_PYTHON = (3, 5)
+if sys.version_info < MIN_PYTHON:
+    sys.exit("Python %s.%s or later is required.\n" % MIN_PYTHON)
 
+import j1939.utils
 
 if __name__ == "__main__":
     import traceback
@@ -18,70 +21,11 @@ if __name__ == "__main__":
     import argparse
     import logging
     import textwrap
-
-'''
-1532554003.434215    PRI=7 PGN=0xff9a               SRC=0x17    d3 ff ff ff ff ff ff ff
-1532554003.434771    PRI=6 PGN=0xd041      DST=0x41 SRC=0x17    a1 ff ff ff ff ff ff ff
-1532554003.863598    PRI=7 PGN=0xd917      DST=0x17 SRC=0x18    0a 13 11 00 00 e9 ff ff
-1532554003.868833    PRI=6 PGN=0xd818      DST=0x18 SRC=0x17    0a 11 ff ff ff ff ff ff
-1532554003.901772    PRI=7 PGN=0xd718      DST=NONE(error) SRC=0x17    ff 59 30 31 2e 30 34 2e 32 30 00
-1532554003.908125    PRI=7 PGN=0xd917      DST=0x17 SRC=0x18    ff 09 00 00 00 00 ff ff
-1532554003.939402    PRI=7 PGN=0xff9a               SRC=0x17    d3 ff ff ff ff ff ff ff
-1532554003.939959    PRI=6 PGN=0xd041      DST=0x41 SRC=0x17    9c ff ff ff ff ff ff ff
-1532554003.940621    PRI=6 PGN=0xfec1               SRC=0x17    00 00 00 00 00 00 00 00
-1532554003.941260    PRI=6 PGN=0xfefc               SRC=0x17    ff ff ff ff ff ff ff ff
-'''
-
-
-def get_mem_object(bus=None, length=4, src=0, dest=0x17, pointer=0, extension=0):
-    countdown = 10
-    result = None
-
-    pgn = j1939.PGN()
-    pgn.value = 0xd917
-    aid = j1939.ArbitrationID(pgn=pgn, source_address=src, destination_address=dest)
-
-    data = [length, 0x13, pointer, 0x00, 0x00, extension, 0xff, 0xff]
-    pdu = j1939.PDU(timestamp=0.0, arbitration_id=aid, data=data, info_strings=None)
-    pdu.display_radix='hex'
-
-    bus.send(pdu)
-
-    while countdown:
-        pdu = bus.recv()
-        if pdu.pgn == 0xd700:
-            value = list(pdu.data)
-            length = value[0]
-            if length == 1:
-                result = value[1]
-            if length == 2:
-                result = (value[2] << 8) + value[1]
-            if length == 4:
-                result = (value[4] << 24) + (value[3] << 16) + (value[2] << 8) + value[1]
-            break # got what I was waiting for
-
-        countdown -= 1
-
-    if (result == None):
-        raise IOError(" no CAN response")
-
-    return result
-
-def getStringVal(s):
-    if s.startswith("0x"):
-        return int(s[2:],base=16)
-    else:
-        return int(s, base=10)
-
+    import inspect
 
 
 if __name__ == "__main__":
 
-    lLevel = logging.WARN
-    jlogger = logging.getLogger("j1939")
-    jlogger.setLevel(lLevel)
-    #ch = logging.StreamHandler()
-    #jlogger.addHandler(ch)
 
     parser = argparse.ArgumentParser(description='''\
            example: %(prog)s -d 0x21 0xe9 -p 0x15
@@ -105,6 +49,10 @@ if __name__ == "__main__":
                       default="250",
                       help="CAN bitrate {250|500}, default is 250")
 
+    parser.add_argument("--log",
+                      default="WARNING",
+                      help="Set LogLevel to DEBUG|INFO|(WARNING)|ERROR|CRITICAL for this app, j1939 and can")
+
     parser.add_argument("-l", "--length",
                       default="4",
                       help="length in bytes (default: 4)")
@@ -124,54 +72,41 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # assuming loglevel is bound to the string value obtained from the
+    # command line argument. Convert to upper case to allow the user to
+    # specify --log=DEBUG or --log=debug
+    numeric_level = getattr(logging, args.log.upper())
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: {}'.format(args.log))
+    logging.basicConfig(level=numeric_level)
 
-    if args.test:
-        # queries a couple objects but setting up the full stack and bus for
-        # each takes a long time.
-        if 1:
-            start = timeit.default_timer()
-            for p, e in [(0x15, 0xe9), (0x00, 0xf1), (0x50, 0xe9), (0x75, 0xe9)]:
-                val = j1939.utils.get_mem_object(length=4, src=0, dest=0x17, pointer=p, extension=e)
-                print("0x%02x-0x%02x = %d" % (p, e, val))
-            print("elapsed = %s s" % (timeit.default_timer() - start))
+    logger = logging.getLogger("j1939")
+    logger.setLevel(numeric_level)
 
+    logger = logging.getLogger("can")
+    logger.setLevel(numeric_level)
 
-        if 1:
-            # queries the same objects but in a single bus instance, should be a tad faster.
-            start = timeit.default_timer()
-            try:
-                jbus = j1939.Bus(channel='can0', bustype='socketcan', timeout=0.01)
-                for p, e in [(0x15, 0xe9), (0x00, 0xf1), (0x50, 0xe9), (0x75, 0xe9)]:
-                    val = get_mem_object(jbus, length=4, src=0, dest=0x17, pointer=p, extension=e)
-                    print("0x%02x-0x%02x = %d" % (p, e, val))
-            except:
-                traceback.print_exc()
-                pass
+    if (args.pointer==None or args.extension==None):
+        raise ValueError("pointer and extension are required!")
 
-            jbus.shutdown()
+    source = int(args.src, 0)
+    dest = int(args.dest, 0)
+    ptr = int(args.pointer, 0)
+    length = int(args.length, 0)
+    ext = int(args.extension, 0)
+    speed = int(args.speed, 0)
+    channel = args.channel
+    logging.info ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
-            print("elapsed = %s s" % (timeit.default_timer() - start))
+    val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel, speed=speed)
+    print("{}".format(val))
+    out = ''
+    if isinstance(val, list):
+            for x in val:
+                out+=chr(x)
+            print(out)
 
-    else:
-
-        if (args.pointer==None or args.extension==None):
-            raise ValueError("pointer and extension are required!")
-
-        source = getStringVal(args.src)
-        dest = getStringVal(args.dest)
-        ptr = getStringVal(args.pointer)
-        length = getStringVal(args.length)
-        ext = getStringVal(args.extension)
-        speed = getStringVal(args.speed)
-        channel = args.channel
-        print ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
-
-        val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel, speed=speed)
-        print(val)
-        out = ''
-        if isinstance(val, list):
-                for x in val:
-                    out+=chr(x)
-                print(out)
-        #print("0x%02x-0x%02x = %d (0x%08x)" % (ptr, ext, val, val))
-
+#(1648235377.698487) can0 1CD94100#0413000000F1FFFF
+#(1648235377.712659) can0 18D80041#0411FFFFFFFFFFFF
+#(1648235377.712660) can0 1CD70041#0400000000FFFFFF
+#(1648235377.712661) can0 18D80041#0019FFFFFFFFFFFF
