@@ -27,13 +27,18 @@ class PGN(object):
     @property
     def is_destination_specific(self):
         result = self.is_pdu1
-        logger.debug("PGN is_destination_specific {:04x}: {}".format(self.value, result))
+        logger.debug(f"PGN is_destination_specific {self.value:04x}: {result}")
         return result
 
     @property
     def value(self):
         _pgn_flags_byte = ((self.reserved_flag << 1) + self.data_page_flag)
-        return int("%.2x%.2x%.2x" % (_pgn_flags_byte, self.pdu_format, self.pdu_specific), 16)
+		#
+		# Be sure to truncate the PGN at 18 bits
+		#
+        result = int("%.2x%.2x%.2x" % (_pgn_flags_byte & 0x03, self.pdu_format, self.pdu_specific), 16)
+        logger.debug(f"value-result = {result:06x}")
+        return result
 
     @value.setter
     def value(self, value):
