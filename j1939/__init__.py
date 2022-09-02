@@ -84,9 +84,12 @@ class Bus(BusABC):
 
     :param bool strict:
         indicates whether to operate on strictly J1939 message (True)
-        or also handle 11-bit CAN messages.  If False, then any specfified
-        `can_filters` will be honored; incoming 11-bit messages will be
-        accepted; and outgoing 11-bit messages will be sent.
+        or also handle 11-bit CAN messages (False).  In strict operation,
+        specification of `j1939_filters` will override any specification of
+        `can_filters`; inbound and outbound 11-bit CAN messages will be
+        dropped.  In non-strict operation, `j1939_filters` will add to
+        `can_filters`; inbound and outbound 11-bit CAN messages will be
+        accepted and sent, respectively.
 
     :param list j1939_filters:
         a list of dictionaries that specify filters that messages must
