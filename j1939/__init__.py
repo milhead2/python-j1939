@@ -83,7 +83,6 @@ class Bus(BusABC):
     A CAN Bus that implements the J1939 Protocol.
 
     :param bool strict:
-
         indicates whether to operate on strictly J1939 message (True)
         or also handle 11-bit CAN messages.  If False, then any specfified
         `can_filters` will be honored; incoming 11-bit messages will be
