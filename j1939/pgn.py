@@ -42,9 +42,9 @@ class PGN(object):
 
     @value.setter
     def value(self, value):
-        self.reserved_flag = (value & 0x080000) >> 17
-        self.data_page_flag = (value & 0x040000) >> 16
-        self.pdu_format = (value & 0x03FF00) >> 8
+        self.reserved_flag = (value & 0x020000) >> 17
+        self.data_page_flag = (value & 0x010000) >> 16
+        self.pdu_format = (value & 0x00FF00) >> 8
         self.pdu_specific = value & 0x0000FF
         #MIL logger.debug("PGN.@valueSetter, value=0x%08x, pdu_format=0x%08x" % (value, self.pdu_format))
 
@@ -52,9 +52,9 @@ class PGN(object):
     def from_value(pgn_value):
         logger.debug("PGN.@from_value, pgn_value=0x%08x" % (pgn_value))
         pgn = PGN()
-        pgn.reserved_flag = (pgn_value & 0x080000) >> 17
-        pgn.data_page_flag = (pgn_value & 0x040000) >> 16
-        pgn.pdu_format = (pgn_value & 0x03FF00) >> 8
+        pgn.reserved_flag = (pgn_value & 0x020000) >> 17
+        pgn.data_page_flag = (pgn_value & 0x010000) >> 16
+        pgn.pdu_format = (pgn_value & 0x00FF00) >> 8
         pgn.pdu_specific = pgn_value & 0x0000FF
         return pgn
 
@@ -64,9 +64,9 @@ class PGN(object):
         canid = canid>>8
         pgn = PGN()
         
-        pgn.reserved_flag = (canid & 0x080000) >> 17
-        pgn.data_page_flag = (canid & 0x040000) >> 16
-        pgn.pdu_format = (canid & 0x03FF00) >> 8
+        pgn.reserved_flag = (canid & 0x020000) >> 17
+        pgn.data_page_flag = (canid & 0x010000) >> 16
+        pgn.pdu_format = (canid & 0x00FF00) >> 8
         pgn.pdu_specific = canid & 0x0000FF
         logger.info("{} staticmethod: PGN Creation, res={}, dp={}, pdu_format=0x{:02x}, pdu_specific=0x{:02x}".format(inspect.stack()[0][3],
                 pgn.reserved_flag, 
