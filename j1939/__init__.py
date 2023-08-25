@@ -175,7 +175,7 @@ class Bus(BusABC):
 
         if isinstance(inboundMessage, Message):
             logger.info('\n\n{}:  Got a Message from CAN: {}'.format(inspect.stack()[0][3],inboundMessage))
-            if inboundMessage.id_type:
+            if inboundMessage.is_extended_id:
                 # Extended ID
                 # Only J1939 messages (i.e. 29-bit IDs) should go further than this point.
                 # Non-J1939 systems can co-exist with J1939 systems, but J1939 doesn't care
@@ -302,7 +302,7 @@ class Bus(BusABC):
 
                 logger.info("MIL8: j1939.send: segment=%d, arb = %s" % (i, arbitration_id))
                 message = Message(arbitration_id=arbitration_id.can_id,
-                                  extended_id=True,
+                                  is_extended_id=True,
                                   dlc=(len(segment) + 1),
                                   data=(bytearray([i + 1]) + segment))
                 messages.append(message)
@@ -346,7 +346,7 @@ class Bus(BusABC):
                pdu.arbitration_id.destination_address != DESTINATION_ADDRESS_GLOBAL:
                 # send request to send
                 logger.debug("MIL8: rts to specific dest: src=%s, dest=%s" % (pdu.source, destination_address))
-                rts_msg = Message(extended_id=True,
+                rts_msg = Message(is_extended_id=True,
                                   arbitration_id=rts_arbitration_id.can_id,
                                   data=[CM_MSG_TYPE_RTS,
                                         pdu_length_msb,
@@ -368,7 +368,7 @@ class Bus(BusABC):
                 rts_arbitration_id.pgn.pdu_specific = DESTINATION_ADDRESS_GLOBAL
                 rts_arbitration_id.destination_address = DESTINATION_ADDRESS_GLOBAL
                 logger.debug("MIL8: rts to Global dest: src=%s, dest=%s" % (pdu.source, destination_address))
-                bam_msg = Message(extended_id=True,
+                bam_msg = Message(is_extended_id=True,
                                   arbitration_id=rts_arbitration_id.can_id | pdu.source,
                                   data=[CM_MSG_TYPE_BAM,
                                         pdu_length_msb,
@@ -399,7 +399,7 @@ class Bus(BusABC):
             msg.display_radix = 'hex'
             logger.debug("j1939.send: calling can_bus_send: j1939-msg: {}, arb-id: {:08x}".format(msg, msg.arbitration_id.can_id))
             can_message = Message(arbitration_id=msg.arbitration_id.can_id,
-                                  extended_id=True,
+                                  is_extended_id=True,
                                   dlc=len(msg.data),
                                   data=msg.data)
 
@@ -561,7 +561,7 @@ class Bus(BusABC):
                                 ())
                         div, mod = divmod(total_length, 256)
                         can_message = Message(arbitration_id=arbitration_id.can_id,
-                                              extended_id=True,
+                                              is_extended_id=True,
                                               dlc=8,
                                               data=[CM_MSG_TYPE_EOM_ACK,
                                                     mod,  # total_length % 256,
@@ -654,7 +654,7 @@ class Bus(BusABC):
                         _data = [0x11, msg.data[4], 0x01, 0xFF, 0xFF]
                         _data.extend(msg.data[5:])
                         logger.debug("send CTS: AID: %s" % _cts_arbitration_id)
-                        cts_msg = Message(extended_id=True, arbitration_id=_cts_arbitration_id.can_id, data=_data,
+                        cts_msg = Message(is_extended_id=True, arbitration_id=_cts_arbitration_id.can_id, data=_data,
                                           dlc=8)
 
                         # send clear to send
@@ -683,7 +683,7 @@ class Bus(BusABC):
                             _data = [0x11, msg.data[4], 0x01, 0xFF, 0xFF]
                             _data.extend(msg.data[5:])
                             logger.debug("send CTS: AID: %s" % _cts_arbitration_id)
-                            cts_msg = Message(extended_id=True, arbitration_id=_cts_arbitration_id.can_id, data=_data,
+                            cts_msg = Message(is_extended_id=True, arbitration_id=_cts_arbitration_id.can_id, data=_data,
                                               dlc=8)
 
                             # send clear to send
