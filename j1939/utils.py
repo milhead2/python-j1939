@@ -54,7 +54,7 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     filt = [{'pgn':0xd800, 'source':dest},{'pgn':0xd400, 'source':dest}]
 
     if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=keygetFunction, broadcast=False, j1939_filters=filt)
+        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=keygetFunction, speed=speed, bitrate=(int(speed)*1000), broadcast=False, j1939_filters=filt)
         node = j1939.Node(bus, j1939.NodeName(), [src])
         bus.connect(node)
         close = True
@@ -73,10 +73,6 @@ def set_mem_object(pointer, extension, value, channel='can0', bustype='socketcan
     bus.send(dm14pdu)
 
     sendBuffer = []
-    #sendBuffer.append(length)
-    #for i in range(0, length):
-    #    sendBuffer.append(0)
-
     logger.info("---------------## length=%d, value=%s " % (length, value))
     if isinstance(value, int) and length < 8:
         logger.info("-----value")
@@ -145,7 +141,7 @@ def get_mem_object(pointer, extension, channel='can0', bustype='socketcan', leng
     close = False
 
     if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, broadcast=False)
+        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, speed=speed, bitrate=(int(speed)*1000), broadcast=False)
         node = j1939.Node(bus, j1939.NodeName(), [src])
         bus.connect(node)
         close = True
@@ -217,7 +213,7 @@ def request_pgn(requested_pgn, channel='can0', speed=250, bustype='socketcan', l
         raise ValueError("pgn must be an integer.")
 
     if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=keygetFunction, broadcast=False)
+        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, speed=speed, bitrate=(int(speed)*1000), keygen=keygetFunction, broadcast=False)
         node = j1939.Node(bus, j1939.NodeName(), [src])
         bus.connect(node)
         close = True
@@ -272,7 +268,7 @@ def send_pgn(requested_pgn, data, channel='can0', speed=250, bustype='socketcan'
     if not isinstance(requested_pgn, int):
         raise ValueError("pgn must be an integer.")
     if bus is None:
-        bus = j1939.Bus(channel=channel, bustype=bustype, timeout=0.01, keygen=keygetFunction)
+        bus = j1939.Bus(channel=channel, bustype=bustype, speed=speed, bitrate=(int(speed)*1000), timeout=0.01, keygen=keygetFunction)
         close = True
         
     pgn = j1939.PGN()
