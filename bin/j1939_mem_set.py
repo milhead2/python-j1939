@@ -54,7 +54,8 @@ examples:
     parser.add_argument("-t", "--timeout", default="1000", help="ms before the request times out (default=1000 or 1s)")
     parser.add_argument("-s", "--source", default="0", help="source address (0-254) default=0")
     parser.add_argument("-d", "--destination", default="0x17", help="destination address (0-254) default=17")
-    parser.add_argument("-c", "--channel", default="can0", help="Generally can0 on workstations or can1 on bbb/pbb targets")
+    parser.add_argument("-c", "--channel", default="can0", help="Generally can0 or PCAN_USBBUS1 on workstations or can1 on bbb/pbb targets")
+    parser.add_argument("-b", "--bustype", default="socketcan", help="channel bus type i.e. socketcan, pcan")
     parser.add_argument("-r", "--robot", action="store_true", default=False, help="provide parsable result data to aid robot testing")
     parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Generate debugging output")
     parser.add_argument(      "--string", action="store_true", default=False, help="Treat an integer parameter as a string")
@@ -133,7 +134,7 @@ examples:
     # queries a couple objects but setting up the full stack and bus for
     # each takes a long time.
     start = timeit.default_timer()
-    val = j1939.utils.set_mem_object(ptr, ext, value, speed=args.speed, channel=args.channel, length=length, src=src, dest=dest, timeout=timeout)
+    val = j1939.utils.set_mem_object(ptr, ext, value, speed=args.speed, channel=args.channel, bustype=args.bustype, length=length, src=src, dest=dest, timeout=timeout)
     #set_mem_object_single(length=1, src=0, dest=0x17, pointer=0x66, extension=0xea, value=127)
     print("elapsed = %s s" % (timeit.default_timer() - start))
     print("return val = {}".format(int(val!=1)))

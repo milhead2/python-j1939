@@ -15,13 +15,14 @@ if sys.version_info < MIN_PYTHON:
 import j1939.utils
 
 if __name__ == "__main__":
-    import traceback
-    import timeit
-    import time
+    # import traceback
+    # import timeit
+    # import time
+    # import textwrap
+    # import inspect
     import argparse
     import logging
-    import textwrap
-    import inspect
+
 
 
 if __name__ == "__main__":
@@ -60,6 +61,10 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--channel",
                   default="can0",
                   help="Memory object pointer offset to request in decimal or 0xHex")
+    
+    parser.add_argument("-b", "--bustype",
+                  default="socketcan",
+                  help="This depends on the channel for pcan use PCAN_USBBUS1")
 
     parser.add_argument("extension",
                   default=None,
@@ -96,9 +101,10 @@ if __name__ == "__main__":
     ext = int(args.extension, 0)
     speed = int(args.speed, 0)
     channel = args.channel
+    bustype = args.bustype
     logging.info ("get_mem_object_single(src=0x%02x, dest=0x%02x, pointer=0x%02x, extension/space=0x%02x, len=%d" % (source, dest, ptr, ext, length))
 
-    val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel, speed=speed)
+    val = j1939.utils.get_mem_object(ptr, ext, length=length, src=source, dest=dest, channel=channel, bustype=bustype, speed=speed)
     print("{}".format(val))
     out = ''
     if isinstance(val, list):
